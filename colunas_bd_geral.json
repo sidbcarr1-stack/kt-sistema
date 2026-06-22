@@ -1,0 +1,556 @@
+[
+  {
+    "coluna": "A",
+    "nome": "ID",
+    "rotulo": "ID",
+    "tipo": "Inteiro",
+    "gravar": false,
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "B",
+    "nome": "Instituição",
+    "rotulo": "Nome da Instituição",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "C",
+    "nome": "Assistência",
+    "rotulo": "Nome da Assistência",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "D",
+    "nome": "Planilha",
+    "rotulo": "Fechamento via Planilha",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "E",
+    "nome": "Checklist",
+    "rotulo": "Tem Checklist?",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "F",
+    "nome": "Situação",
+    "rotulo": "Situação",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "G",
+    "nome": "Observação",
+    "rotulo": "Descrição",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "H",
+    "nome": "Pendência",
+    "rotulo": "Pendência",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "I",
+    "nome": "Pedágio",
+    "rotulo": "Pedágio",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "J",
+    "nome": "Protocolo",
+    "rotulo": "Protocolo",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "K",
+    "nome": "Data",
+    "rotulo": "Data do Serviço",
+    "tipo": "Data",
+    "formato": "dd/mm/aaaa",
+    "gravar": true
+  },
+  {
+    "coluna": "L",
+    "nome": "HR_Aciona",
+    "rotulo": "Hora do Serviço",
+    "tipo": "Hora",
+    "formato": "HH:mm",
+    "gravar": true
+  },
+  {
+    "coluna": "M",
+    "nome": "Serviço",
+    "rotulo": "Nome do Serviço",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "N",
+    "nome": "Motorista",
+    "rotulo": "Nome do Motorista",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "O",
+    "nome": "Foto Enviada",
+    "rotulo": "Foto Enviada Por:",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "P",
+    "nome": "Placa",
+    "rotulo": "Placa do Veículo",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "Q",
+    "nome": "Guincho",
+    "rotulo": "Nome do Carro Guincho",
+    "tipo": "Texto",
+    "gravar": false,
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "R",
+    "nome": "PlacaGuincho",
+    "rotulo": "Placa do Carro Guincho",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "S",
+    "nome": "VlrSaída",
+    "rotulo": "Valor de Saída",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "T",
+    "nome": "VlrHP",
+    "rotulo": "Valor da Hora Parada",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "U",
+    "nome": "QdeHP",
+    "rotulo": "Quantidade de Hora Parada",
+    "tipo": "Número",
+    "decimais": 2,
+    "mostrar_decimais_digitadas_apenas": true,
+    "gravar": true
+  },
+  {
+    "coluna": "V",
+    "nome": "TotalHP",
+    "rotulo": "Valor Total de Hora Parada",
+    "tipo": "Moeda",
+    "gravar": false,
+    "calculo": "T*U",
+    "condicao": "Se T e U tiverem valores cadastrados",
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "W",
+    "nome": "VlrHT",
+    "rotulo": "Valor da Hora Trabalhada",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "X",
+    "nome": "QdeHT",
+    "rotulo": "Quantidade de Hora Trabalhada",
+    "tipo": "Número",
+    "decimais": 2,
+    "mostrar_decimais_digitadas_apenas": true,
+    "gravar": true
+  },
+  {
+    "coluna": "Y",
+    "nome": "TotalHT",
+    "rotulo": "Valor Total de Hora Trabalhada",
+    "tipo": "Moeda",
+    "gravar": false,
+    "calculo": "W*X",
+    "condicao": "Se W e X tiverem valores cadastrados",
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "Z",
+    "nome": "VlrKM",
+    "rotulo": "Valor do KM Excedente",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "AA",
+    "nome": "QdeKM",
+    "rotulo": "Quantidade de KM Excedente",
+    "tipo": "Número",
+    "decimais": 2,
+    "gravar": true
+  },
+  {
+    "coluna": "AB",
+    "nome": "TotalKM",
+    "rotulo": "Valor Total de KM Excedente",
+    "tipo": "Moeda",
+    "gravar": false,
+    "calculo": "Z*AA",
+    "condicao": "Se Z e AA tiverem valores cadastrados",
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "AC",
+    "nome": "VlrPA",
+    "rotulo": "Valor do Patins",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "AD",
+    "nome": "QdePA",
+    "rotulo": "Quantidade de Patins",
+    "tipo": "Número",
+    "decimais": 2,
+    "mostrar_decimais_digitadas_apenas": true,
+    "gravar": true
+  },
+  {
+    "coluna": "AE",
+    "nome": "TotalPA",
+    "rotulo": "Valor Total de Patins",
+    "tipo": "Moeda",
+    "gravar": false,
+    "calculo": "AC*AD",
+    "condicao": "Se AC e AD tiverem valores cadastrados",
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "AF",
+    "nome": "VlrMA",
+    "rotulo": "Valor do Macaco",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "AG",
+    "nome": "QdeMA",
+    "rotulo": "Quantidade de Macaco",
+    "tipo": "Número",
+    "decimais": 2,
+    "mostrar_decimais_digitadas_apenas": true,
+    "gravar": true
+  },
+  {
+    "coluna": "AH",
+    "nome": "TotalMA",
+    "rotulo": "Valor Total de Macaco",
+    "tipo": "Moeda",
+    "gravar": false,
+    "calculo": "AF*AG",
+    "condicao": "Se AF e AG tiverem valores cadastrados",
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "AI",
+    "nome": "VlrDI",
+    "rotulo": "Valor da Diária",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "AJ",
+    "nome": "QdeDI",
+    "rotulo": "Quantidade de Diária",
+    "tipo": "Número",
+    "decimais": 2,
+    "mostrar_decimais_digitadas_apenas": true,
+    "gravar": true
+  },
+  {
+    "coluna": "AK",
+    "nome": "TotalDI",
+    "rotulo": "Valor Total da Diária",
+    "tipo": "Moeda",
+    "gravar": false,
+    "calculo": "AI*AJ",
+    "condicao": "Se AI e AJ tiverem valores cadastrados",
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "AL",
+    "nome": "VlrPE",
+    "rotulo": "Valor do Pedágio",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "AM",
+    "nome": "QdePE",
+    "rotulo": "Quantidade de Pedágio",
+    "tipo": "Número",
+    "decimais": 2,
+    "mostrar_decimais_digitadas_apenas": true,
+    "gravar": true
+  },
+  {
+    "coluna": "AN",
+    "nome": "TotalPE",
+    "rotulo": "Valor Total de Pedágio",
+    "tipo": "Moeda",
+    "gravar": false,
+    "calculo": "AL*AM",
+    "condicao": "Se AL e AM tiverem valores cadastrados",
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "AO",
+    "nome": "Carga",
+    "rotulo": "Carga",
+    "tipo": "Número",
+    "decimais": 2,
+    "mostrar_decimais_digitadas_apenas": true,
+    "gravar": true
+  },
+  {
+    "coluna": "AP",
+    "nome": "ExcedPG_Assoc",
+    "rotulo": "Excedente Pago Pelo Associado ou Ajuste",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "AQ",
+    "nome": "Total",
+    "rotulo": "Valor Total do Serviço",
+    "tipo": "Moeda",
+    "gravar": false,
+    "calculo": "S+V+Y+AB+AE+AH+AK+AN+AP",
+    "condicao": "se quaisquer uma dessas colunas não estiverem vazias",
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "AR",
+    "nome": "VlrCheck",
+    "rotulo": "Valor Total Anotado no Checklist",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "AS",
+    "nome": "Diferença",
+    "rotulo": "Diferença Entre Valor Total e Anotado no Checklist",
+    "tipo": "Moeda",
+    "gravar": false,
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "AT",
+    "nome": "Observação1",
+    "rotulo": "Observação 1",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "AU",
+    "nome": "VlrBaseComissão",
+    "rotulo": "Valor Base Para Comissão",
+    "tipo": "Moeda",
+    "gravar": true,
+    "calculo": "AQ",
+    "condicao": "se tiver valor em AU permanece o valor de AU, senão, receberá automaticamente o valor de AQ desde que AQ não esteja vazio"
+  },
+  {
+    "coluna": "AV",
+    "nome": "ObsComissão",
+    "rotulo": "Observação Comissão",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "AW",
+    "nome": "DT-PG-Prog",
+    "rotulo": "Data Programada Para Pagamento",
+    "tipo": "Data",
+    "formato": "dd/mm/aaaa",
+    "gravar": true
+  },
+  {
+    "coluna": "AX",
+    "nome": "Nº FatVeniti",
+    "rotulo": "Nº Faturamento VENITI",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "AY",
+    "nome": "Nº NF/REC KT",
+    "rotulo": "Nº NF ou Recibo KT",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "AZ",
+    "nome": "Nº Boleto KT",
+    "rotulo": "Nº do Boleto KT",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "BA",
+    "nome": "VlrPG-Assist",
+    "rotulo": "Valor Pago Pela Assistência",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "BB",
+    "nome": "DiferPG",
+    "rotulo": "Diferença no Pagamento",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "BC",
+    "nome": "Serviço Efetivado?",
+    "rotulo": "Serviço Efetivado?",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "BD",
+    "nome": "informação Adicional",
+    "rotulo": "informação Adicional",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "BE",
+    "nome": "FechaV-Ision",
+    "rotulo": "Fechamento Velox Ision",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "BF",
+    "nome": "Observação Pedágio",
+    "rotulo": "Observação Pedágio",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "BG",
+    "nome": "Em Negociação?",
+    "rotulo": "Em Negociação?",
+    "tipo": "Texto",
+    "valores_aceitos": ["SIM", "NÃO"],
+    "gravar": true
+  },
+  {
+    "coluna": "BH",
+    "nome": "ResultadoNegociação",
+    "rotulo": "Resultado da Negociação",
+    "tipo": "Texto",
+    "valores_aceitos": ["Favorável", "Desfavorável"],
+    "gravar": true
+  },
+  {
+    "coluna": "BI",
+    "nome": "VlrIniOperadora",
+    "rotulo": "Valor Inicial Pago Pela Operadora",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "BJ",
+    "nome": "VlrNegociado",
+    "rotulo": "Valor Negociado",
+    "tipo": "Moeda",
+    "gravar": true
+  },
+  {
+    "coluna": "BK",
+    "nome": "EmissaoNF_REC",
+    "rotulo": "Data de Emissão da NF ou Recibo KT",
+    "tipo": "Data",
+    "formato": "dd/mm/aaaa",
+    "gravar": true
+  },
+  {
+    "coluna": "BL",
+    "nome": "DiasDT_PG",
+    "rotulo": "Qde de Dias Para o Pagamento",
+    "tipo": "Inteiro",
+    "gravar": false,
+    "formula_exemplo": "=ARRAYFORMULA(SE(B5:B=\"\"; \"\"; SEERRO(PROCV(B5:B; Parametros!F2:G; 2; 0); \"\")))",
+    "condicao": "automaticamente inserido somente quando BM estiver vazio",
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "BM",
+    "nome": "DiasDT_PG_Manual",
+    "rotulo": "Qde de Dias Para o Pagamento(Manual)",
+    "tipo": "Inteiro",
+    "gravar": true
+  },
+  {
+    "coluna": "BN",
+    "nome": "DT_Pagto",
+    "rotulo": "Data de Pagamento",
+    "tipo": "Data",
+    "formato": "dd/mm/aaaa",
+    "gravar": false,
+    "formula_exemplo": "=ARRAYFORMULA(SE(BK5:BK=\"\"; \"\"; BK5:BK + SEERRO(N(BM5:BM) + (BM5:BM=\"\")*N(BL5:BL))))",
+    "observacao": "NÃO GRAVAR NA PLANILHA"
+  },
+  {
+    "coluna": "BO",
+    "nome": "EnderecoOrigem",
+    "rotulo": "Endereço de Origem",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "BP",
+    "nome": "EnderecoDestino",
+    "rotulo": "Endereço de Destino",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "BQ",
+    "nome": "NumOS/Pedido",
+    "rotulo": "Número da OS ou Pedido do Cliente",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "BR",
+    "nome": "DtCompNF",
+    "rotulo": "Data de Competência da NF KT",
+    "tipo": "Texto",
+    "gravar": true
+  },
+  {
+    "coluna": "BS",
+    "nome": "DT_Pagto-1",
+    "rotulo": "Segunda Data de Pagamento",
+    "tipo": "Data",
+    "formato": "dd/mm/aaaa",
+    "gravar": true
+  }
+]

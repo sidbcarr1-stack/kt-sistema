@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Login - KTSistema</title>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">🚛 KTSistema</h1>
+            <p class="text-gray-600">Gestão de Ordens de Serviço</p>
+        </div>
+
+        <form id="form-login" class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">Usuário ou Email</label>
+                <input type="text" id="login" required
+                    class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    placeholder="Digite seu username ou email">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">Senha</label>
+                <input type="password" id="senha" required
+                    class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    placeholder="Sua senha">
+            </div>
+
+            <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">
+                Entrar
+            </button>
+        </form>
+
+        <div class="mt-6 text-center space-y-2">
+            <p class="text-gray-600 text-sm">Não tem cadastro?</p>
+            <a href="/cadastro" class="text-blue-600 hover:text-blue-800 font-bold">Cadastre-se aqui</a>
+            <p class="text-gray-400 text-xs">ou</p>
+            <a href="/recuperar-senha" class="text-orange-600 hover:text-orange-800 font-bold text-sm">Esqueceu a
+                senha?</a>
+        </div>
+
+        <div id="mensagem-erro"
+            class="hidden mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm"></div>
+    </div>
+
+    <script>
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const login = document.getElementById('login').value;
+            const senha = document.getElementById('senha').value;
+            const mensagemErro = document.getElementById('mensagem-erro');
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `login=${encodeURIComponent(login)}&senha=${encodeURIComponent(senha)}`
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    window.location.href = result.redirect || '/';
+                } else {
+                    mensagemErro.textContent = result.error;
+                    mensagemErro.classList.remove('hidden');
+                }
+            } catch (err) {
+                mensagemErro.textContent = 'Erro de conexão. Tente novamente.';
+                mensagemErro.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,33 @@
+---
+description: Diretrizes obrigatórias para manipulação do ecossistema KTSistema.
+globs: "*"
+alwaysApply: true
+---
+# Diretrizes do Projeto: KTSistemas + Google Sheets (Regras Complexas)
+Você atuará como um Engenheiro de Software Sênior. A planilha alvo 'BD_Geral' possui 71 colunas e validações dinâmicas dependentes baseadas em outras abas do mesmo arquivo.
+
+## 📐 Estrutura Crítica e Mapeamento de Abas
+- **Aba Principal:** `BD_Geral` (Dados iniciam na linha 5. Linha 4 é o cabeçalho).
+- **Abas de Apoio Estáticas (Menus Suspensos Fixos):**
+  - Coluna I (Valores fixos: "Não", "Sim")
+  - Coluna BG (Valores fixos: "Não", "Sim")
+  - Coluna BH (Valores fixos: "Favorável", "Desfavorável")
+- **Abas de Apoio Baseadas no arquivo 'Parametros':**
+  - Coluna B (Instituição) -> Puxa do intervalo `Parametros!$F$2:$F`
+  - Coluna D -> Puxa do intervalo `Parametros!$Q$2:$Q`
+  - Coluna H -> Puxa do intervalo `Parametros!$I$2:$I`
+  - Coluna M -> Puxa do intervalo `Parametros!$D$2:$D`
+  - Coluna N -> Puxa do intervalo `Parametros!$A$2:$A`
+  - Coluna O -> Puxa do intervalo `Parametros!$A$2:$A`
+  - Coluna R -> Puxa do intervalo `Parametros!$Y$2:$Y`
+
+## 🏎️ Regras de Validação Dinâmica (Gatilhos Dependentes)
+O sistema possui dependência de cascata idêntica ao script `ValidacaoDinamica` do Google Apps Script:
+1. O campo **Instituição** (Coluna B) é o gatilho principal.
+2. Quando a Instituição for selecionada, o sistema backend deve filtrar a aba `Parametros-2` (Coluna A = Instituição, Coluna B = Assistência) para renderizar o dropdown de **Assistência** (Coluna C).
+3. Simultaneamente, deve filtrar a aba `Parametros-1` (Coluna A = Instituição, Coluna B = Situação) para renderizar o dropdown de **Situação** (Coluna F).
+4. **Limpeza Nuclear:** Sempre aplicar remoção de caracteres invisíveis (`\u00A0`) e espaços duplos ao processar strings, usando a lógica `texto.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim()`.
+
+## ⚠️ Restrições de Ouro
+- **NÃO** tente recriar validações no Sheets via API a cada inserção; o backend da aplicação web deve fazer o filtro para o formulário HTML e enviar apenas o dado limpo e validado.
+- Preservar fórmulas originais da planilha em operações de escrita.

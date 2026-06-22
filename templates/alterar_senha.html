@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Alterar Senha - KTSistema</title>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">🔐 Alterar Senha</h1>
+            <p class="text-gray-600">Usuário: <span id="usuario-nome" class="font-bold text-blue-600"></span></p>
+        </div>
+
+        <form id="form-alterar-senha" class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">Senha Atual</label>
+                <input type="password" id="senha_atual" required
+                    class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    placeholder="Digite sua senha atual">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">Nova Senha</label>
+                <input type="password" id="nova_senha" required minlength="6"
+                    class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    placeholder="Mínimo 6 caracteres">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">Confirmar Nova Senha</label>
+                <input type="password" id="confirmar_senha" required minlength="6"
+                    class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    placeholder="Repita a nova senha">
+            </div>
+
+            <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">
+                Alterar Senha
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <a href="/" class="text-blue-600 hover:text-blue-800 font-bold">← Voltar ao Menu</a>
+        </div>
+
+        <div id="mensagem" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+    </div>
+
+    <script>
+        // Mostrar nome do usuário
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/usuario-atual');
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('usuario-nome').textContent = result.usuario.nome;
+                }
+            } catch (e) {
+                console.error('Erro ao carregar usuário:', e);
+            }
+        });
+
+        // Submeter formulário
+        document.getElementById('form-alterar-senha').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const senha_atual = document.getElementById('senha_atual').value;
+            const nova_senha = document.getElementById('nova_senha').value;
+            const confirmar_senha = document.getElementById('confirmar_senha').value;
+            const mensagem = document.getElementById('mensagem');
+
+            try {
+                const response = await fetch('/alterar-senha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ senha_atual, nova_senha, confirmar_senha })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    mensagem.className = 'mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm';
+                    mensagem.textContent = result.message;
+                    mensagem.classList.remove('hidden');
+
+                    // Limpar campos
+                    document.getElementById('senha_atual').value = '';
+                    document.getElementById('nova_senha').value = '';
+                    document.getElementById('confirmar_senha').value = '';
+
+                    // Redirecionar após 2 segundos
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    mensagem.className = 'mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm';
+                    mensagem.textContent = result.error;
+                    mensagem.classList.remove('hidden');
+                }
+            } catch (err) {
+                mensagem.className = 'mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm';
+                mensagem.textContent = 'Erro de conexão. Tente novamente.';
+                mensagem.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>
