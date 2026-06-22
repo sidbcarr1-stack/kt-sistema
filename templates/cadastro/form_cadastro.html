@@ -1,0 +1,32 @@
+<div id="view-form" class="bg-white p-4 md:p-6 rounded-xl shadow-lg mb-6">
+    <div id="edit-indicator"
+        class="hidden mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800 text-center">
+        ✏️ Editando ID: <strong id="edit-id-display"></strong>
+        <button type="button" onclick="cancelarEdicao()" class="ml-2 text-blue-600 hover:underline">Cancelar
+            edição</button>
+    </div>
+    <div class="mb-4 border-b border-gray-200">
+        <nav class="flex flex-wrap gap-1" aria-label="Abas do formulário">
+            <button type="button" data-aba="dados-gerais" onclick="mostrarAba(1)" id="aba-btn-1"
+                class="aba-btn ativa px-4 py-2 text-sm font-medium border border-gray-300 rounded-t-lg">📋 Dados Gerais
+                (A-R)</button>
+            <button type="button" data-aba="valores-totais" onclick="mostrarAba(2)" id="aba-btn-2"
+                class="aba-btn px-4 py-2 text-sm font-medium border border-gray-300 rounded-t-lg bg-white hover:bg-gray-50">💰
+                Valores e Totais (S-AU)</button>
+            <button type="button" data-aba="pagamento-obs" onclick="mostrarAba(3)" id="aba-btn-3"
+                class="aba-btn px-4 py-2 text-sm font-medium border border-gray-300 rounded-t-lg bg-white hover:bg-gray-50">📄
+                Pagamento e Obs (AV-BS)</button>
+        </nav>
+    </div>
+    <form id="form-os" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4"></form>
+    <div class="mt-5 flex flex-wrap gap-3 pt-4 border-t">
+        <button type="button" id="btn-salvar" onclick="salvar()"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold transition-colors disabled:opacity-50">💾
+            Salvar OS</button>
+        <button type="button" id="btn-cancel-edit" onclick="cancelarEdicao()"
+            class="hidden bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded font-semibold transition-colors">Cancelar</button>
+        <button type="button" onclick="limpar()"
+            class="ml-auto bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded font-semibold transition-colors">🗑️
+            Limpar</button>
+    </div>
+</div>

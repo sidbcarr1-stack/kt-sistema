@@ -1,0 +1,95 @@
+<div id="view-list" class="bg-white p-4 md:p-6 rounded-xl shadow-lg">
+    <div class="bg-gray-50 p-4 rounded-lg mb-4 border">
+        <h3 class="text-sm font-bold text-gray-700 mb-3"> Filtros Avançados</h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Campo 1</label>
+                <select id="filtro_campo1" onchange="configurarFiltroData(1)" class="w-full border p-2 rounded text-sm">
+                    <option value="">Selecione...</option>
+                    <option value="A">ID (A)</option>
+                    <option value="B">INSTITUIÇÃO (B)</option>
+                    <option value="F">SITUAÇÃO (F)</option>
+                    <option value="J">PROTOCOLO (J)</option>
+                    <option value="K">DATA (K)</option>
+                    <option value="P">PLACA (P)</option>
+                    <option value="M">SERVIÇO (M)</option>
+                    <option value="N">MOTORISTA (N)</option>
+                    <option value="AQ">TOTAL (AQ)</option>
+                    <option value="AY">Nº NF/REC KT (AY)</option>
+                    <option value="AZ">Nº BOLETO KT (AZ)</option>
+                    <option value="BK">DATA EMISSÃO NF_REC (BK)</option>
+                    <option value="BN">DATA PAGTO (BN)</option>
+                    <option value="BR">DATA COMPETÊNCIA NF (BR)</option>
+                </select>
+            </div>
+            <div id="filtro1_texto">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Valor</label>
+                <select id="filtro_valor1" class="w-full border p-2 rounded text-sm">
+                    <option value="">Selecione...</option>
+                </select>
+            </div>
+            <div id="filtro1_data_inicio" class="hidden">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Data Início</label>
+                <input type="date" id="filtro_data1_inicio" class="w-full border p-2 rounded text-sm">
+            </div>
+            <div id="filtro1_data_fim" class="hidden">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Data Fim</label>
+                <input type="date" id="filtro_data1_fim" class="w-full border p-2 rounded text-sm">
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Campo 2</label>
+                <select id="filtro_campo2" onchange="configurarFiltroData(2)" class="w-full border p-2 rounded text-sm">
+                    <option value="">Selecione...</option>
+                    <option value="A">ID (A)</option>
+                    <option value="B">INSTITUIÇÃO (B)</option>
+                    <option value="F">SITUAÇÃO (F)</option>
+                    <option value="J">PROTOCOLO (J)</option>
+                    <option value="K">DATA (K)</option>
+                    <option value="P">PLACA (P)</option>
+                    <option value="M">SERVIÇO (M)</option>
+                    <option value="N">MOTORISTA (N)</option>
+                    <option value="AQ">TOTAL (AQ)</option>
+                    <option value="AY">Nº NF/REC KT (AY)</option>
+                    <option value="AZ">Nº BOLETO KT (AZ)</option>
+                    <option value="BK">DATA EMISSÃO NF_REC (BK)</option>
+                    <option value="BN">DATA PAGTO (BN)</option>
+                    <option value="BR">DATA COMPETÊNCIA NF (BR)</option>
+                </select>
+            </div>
+            <div id="filtro2_texto">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Valor</label>
+                <select id="filtro_valor2" class="w-full border p-2 rounded text-sm">
+                    <option value="">Selecione...</option>
+                </select>
+            </div>
+            <div id="filtro2_data_inicio" class="hidden">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Data Início</label>
+                <input type="date" id="filtro_data2_inicio" class="w-full border p-2 rounded text-sm">
+            </div>
+            <div id="filtro2_data_fim" class="hidden">
+                <label class="block text-xs font-bold text-gray-600 mb-1">Data Fim</label>
+                <input type="date" id="filtro_data2_fim" class="w-full border p-2 rounded text-sm">
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button type="button" onclick="carregarLista()"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium">🔍
+                Filtrar</button>
+            <button type="button" onclick="limparFiltros()"
+                class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded text-sm font-medium">🗑️ Limpar
+                Filtros</button>
+        </div>
+    </div>
+    <div class="table-scroll border rounded">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50">
+                <tr id="table-header"></tr>
+            </thead>
+            <tbody id="table-body" class="bg-white divide-y divide-gray-100"></tbody>
+        </table>
+    </div>
+    <div id="pagination" class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3"></div>
+    <p id="total-info" class="mt-2 text-xs text-gray-500 text-center"></p>
+</div>

@@ -1,0 +1,106 @@
+/* ==================== ESTILOS GERAIS ==================== */
+select:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+    color: #9ca3af;
+}
+
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.col-id {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 10;
+    font-weight: 600;
+}
+
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+.edit-mode {
+    border: 2px solid #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.aba-btn {
+    transition: all 0.2s;
+}
+
+.aba-btn.ativa {
+    background-color: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.menu-card {
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.menu-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.menu-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.input-centralizado {
+    text-align: center;
+}
+
+.label-centralizado {
+    text-align: center;
+    justify-content: center;
+}
+
+.field-wrapper label {
+    display: flex;
+    justify-content: center;
+}
+
+/* ==================== CAMPOS COM FÓRMULA ==================== */
+input[readonly],
+input[readonly="readonly"] {
+    background-color: #c2c3c4 !important;
+    color: #152860 !important;
+    border: 1px solid #d1d5db !important;
+}
+
+/* Campo TOTAL DO SERVIÇO (AQ) - NEGRITO */
+input#in_AQ,
+#in_AQ {
+    font-weight: 900 !important;
+    background-color: #c2c3c4 !important;
+    color: #152860 !important;
+    border: 2px solid #22c55e !important;
+}

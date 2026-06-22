@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br" translate="no">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>{% block title %}KTSistema{% endblock %}</title>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    {% block body %}{% endblock %}
+
+    <!-- Scripts comuns -->
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/calculos.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/crud.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/filtros.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/relatorio.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/comissao.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/nf_recibo.js') }}"></script>
+
+
+    <!-- Biblioteca para gerar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>
