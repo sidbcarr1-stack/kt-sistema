@@ -1172,6 +1172,178 @@ def relatorio():
 """ if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000) """
 
+# ==================== CADASTRO DE CLIENTES ====================
+
+@app.route('/cadastro-clientes')
+def cadastro_clientes():
+    """Página de Cadastro de Clientes (Instituições)"""
+    if 'usuario_logado' not in session:
+        return redirect(url_for('login'))
+    return render_template('cad_clientes.html')
+
+@app.route('/api/clientes', methods=['GET'])
+def listar_clientes():
+    """API: Listar todos os clientes"""
+    try:
+        aba = sheets_backend._obter_aba('cadClientes')
+        dados = aba.get('A2:S1000')  # A partir da linha 2
+        
+        if not dados:
+            return jsonify({"success": True, "dados": []})
+        
+        # Converter para lista de dicionários
+        clientes = []
+        for linha in dados:
+            if linha and any(linha):  # Ignorar linhas vazias
+                cliente = {
+                    'id': linha[0] if len(linha) > 0 else '',
+                    'instituicao': linha[1] if len(linha) > 1 else '',
+                    'assistencia': linha[2] if len(linha) > 2 else '',
+                    'nome_fantasia': linha[3] if len(linha) > 3 else '',
+                    'razao_social': linha[4] if len(linha) > 4 else '',
+                    'cnpj_cpf': linha[5] if len(linha) > 5 else '',
+                    'insc_municipal': linha[6] if len(linha) > 6 else '',
+                    'insc_estadual': linha[7] if len(linha) > 7 else '',
+                    'email': linha[8] if len(linha) > 8 else '',
+                    'email_nfe': linha[9] if len(linha) > 9 else '',
+                    'copia_para': linha[10] if len(linha) > 10 else '',
+                    'site': linha[11] if len(linha) > 11 else '',
+                    'endereco': linha[12] if len(linha) > 12 else '',
+                    'bairro': linha[13] if len(linha) > 13 else '',
+                    'cidade': linha[14] if len(linha) > 14 else '',
+                    'estado': linha[15] if len(linha) > 15 else '',
+                    'cep': linha[16] if len(linha) > 16 else '',
+                    'telefone': linha[17] if len(linha) > 17 else '',
+                    'observacoes': linha[18] if len(linha) > 18 else ''
+                }
+                clientes.append(cliente)
+        
+        return jsonify({"success": True, "dados": clientes})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/clientes', methods=['POST'])
+def salvar_cliente():
+    """API: Salvar novo cliente"""
+    try:
+        dados = request.json
+        aba = sheets_backend._obter_aba('cadClientes')
+        
+        # Gerar próximo ID
+        ultima_linha = len(aba.col_values(1)) + 1
+        
+        # Converter para maiúsculas
+        instituicao = str(dados.get('instituicao', '')).upper()
+        assistencia = str(dados.get('assistencia', '')).upper()
+        
+        # Preparar dados para gravação
+        linha = [
+            ultima_linha - 1,  # ID automático
+            instituicao,
+            assistencia,
+            dados.get('nome_fantasia', ''),
+            dados.get('razao_social', ''),
+            dados.get('cnpj_cpf', ''),
+            dados.get('insc_municipal', ''),
+            dados.get('insc_estadual', ''),
+            dados.get('email', ''),
+            dados.get('email_nfe', ''),
+            dados.get('copia_para', ''),
+            dados.get('site', ''),
+            dados.get('endereco', ''),
+            dados.get('bairro', ''),
+            dados.get('cidade', ''),
+            dados.get('estado', ''),
+            dados.get('cep', ''),
+            dados.get('telefone', ''),
+            dados.get('observacoes', '')
+        ]
+        
+        # Gravar na planilha
+        aba.append_row(linha)
+        
+        return jsonify({"success": True, "message": "Cliente cadastrado com sucesso!"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/clientes/<int:id_cliente>', methods=['PUT'])
+def atualizar_cliente(id_cliente):
+    """API: Atualizar cliente existente"""
+    try:
+        dados = request.json
+        aba = sheets_backend._obter_aba('cadClientes')
+        
+        # Encontrar linha do cliente
+        dados_planilha = aba.get('A2:S1000')
+        linha_encontrada = None
+        
+        for idx, linha in enumerate(dados_planilha, start=2):
+            if linha and str(linha[0]) == str(id_cliente):
+                linha_encontrada = idx
+                break
+        
+        if not linha_encontrada:
+            return jsonify({"success": False, "error": "Cliente não encontrado"}), 404
+        
+        # Converter para maiúsculas
+        instituicao = str(dados.get('instituicao', '')).upper()
+        assistencia = str(dados.get('assistencia', '')).upper()
+        
+        # Atualizar dados
+        atualizacoes = [
+            {'range': f'B{linha_encontrada}', 'values': [[instituicao]]},
+            {'range': f'C{linha_encontrada}', 'values': [[assistencia]]},
+            {'range': f'D{linha_encontrada}', 'values': [[dados.get('nome_fantasia', '')]]},
+            {'range': f'E{linha_encontrada}', 'values': [[dados.get('razao_social', '')]]},
+            {'range': f'F{linha_encontrada}', 'values': [[dados.get('cnpj_cpf', '')]]},
+            {'range': f'G{linha_encontrada}', 'values': [[dados.get('insc_municipal', '')]]},
+            {'range': f'H{linha_encontrada}', 'values': [[dados.get('insc_estadual', '')]]},
+            {'range': f'I{linha_encontrada}', 'values': [[dados.get('email', '')]]},
+            {'range': f'J{linha_encontrada}', 'values': [[dados.get('email_nfe', '')]]},
+            {'range': f'K{linha_encontrada}', 'values': [[dados.get('copia_para', '')]]},
+            {'range': f'L{linha_encontrada}', 'values': [[dados.get('site', '')]]},
+            {'range': f'M{linha_encontrada}', 'values': [[dados.get('endereco', '')]]},
+            {'range': f'N{linha_encontrada}', 'values': [[dados.get('bairro', '')]]},
+            {'range': f'O{linha_encontrada}', 'values': [[dados.get('cidade', '')]]},
+            {'range': f'P{linha_encontrada}', 'values': [[dados.get('estado', '')]]},
+            {'range': f'Q{linha_encontrada}', 'values': [[dados.get('cep', '')]]},
+            {'range': f'R{linha_encontrada}', 'values': [[dados.get('telefone', '')]]},
+            {'range': f'S{linha_encontrada}', 'values': [[dados.get('observacoes', '')]]},
+        ]
+        
+        # Aplicar atualizações
+        aba.batch_update(atualizacoes, value_input_option="USER_ENTERED")
+        
+        return jsonify({"success": True, "message": "Cliente atualizado com sucesso!"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/clientes/<int:id_cliente>', methods=['DELETE'])
+def excluir_cliente(id_cliente):
+    """API: Excluir cliente"""
+    try:
+        aba = sheets_backend._obter_aba('cadClientes')
+        
+        # Encontrar linha do cliente
+        dados_planilha = aba.get('A2:S1000')
+        linha_encontrada = None
+        
+        for idx, linha in enumerate(dados_planilha, start=2):
+            if linha and str(linha[0]) == str(id_cliente):
+                linha_encontrada = idx
+                break
+        
+        if not linha_encontrada:
+            return jsonify({"success": False, "error": "Cliente não encontrado"}), 404
+        
+        # Excluir linha
+        aba.delete_rows(linha_encontrada)
+        
+        return jsonify({"success": True, "message": "Cliente excluído com sucesso!"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

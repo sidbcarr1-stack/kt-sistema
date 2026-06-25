@@ -50,4 +50,5 @@ Thumbs.db
 # Sensíveis
 credentials.json
 .env
-*.log
+*.log   
+atualizar.bat
