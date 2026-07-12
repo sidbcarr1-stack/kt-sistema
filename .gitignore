@@ -52,3 +52,10 @@ credentials.json
 .env
 *.log   
 atualizar.bat
+
+# Credenciais sensíveis - NUNCA commitar
+credentials.json
+*.json
+!appsettings.json
+# Credenciais - NUNCA commitar
+credentials.json
