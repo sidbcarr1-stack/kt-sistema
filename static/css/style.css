@@ -104,3 +104,52 @@ input#in_AQ,
     color: #152860 !important;
     border: 2px solid #22c55e !important;
 }
+
+/* ==================== REDUZIR TAMANHO DO MENU ==================== */
+.menu-card {
+    padding: 1.5rem !important;
+    /* Reduzir padding interno */
+    max-height: 180px;
+    /* Limitar altura máxima */
+    transition: all 0.3s ease;
+}
+
+.menu-icon {
+    font-size: 2.5rem !important;
+    /* Reduzir tamanho do ícone */
+    margin-bottom: 0.75rem !important;
+}
+
+.menu-card h2 {
+    font-size: 1.25rem !important;
+    /* Reduzir tamanho do título */
+    margin-bottom: 0.5rem !important;
+    line-height: 1.3;
+}
+
+.menu-card p {
+    font-size: 0.75rem !important;
+    /* Reduzir tamanho da descrição */
+    line-height: 1.4;
+}
+
+/* Espaçamento entre cards */
+.grid.gap-8 {
+    gap: 1.5rem !important;
+    /* Reduzir espaçamento entre cards */
+}
+
+/* Título principal menor */
+#menu-principal .text-5xl {
+    font-size: 2.5rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+#menu-principal .text-xl {
+    font-size: 1rem !important;
+}
+
+/* Reduzir margem inferior do header */
+#menu-principal .mb-12 {
+    margin-bottom: 2rem !important;
+}

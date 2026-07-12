@@ -108,7 +108,7 @@ function fillSelect(id, options, placeholder = 'Selecione...') {
         options.map(o => `<option value="${o}"${o === curr ? ' selected' : ''}>${o}</option>`).join('');
 }
 
-function parseCurrency(v) {
+/* function parseCurrency(v) {
     if (!v || !String(v).trim()) return 0;
 
     let str = String(v).trim();
@@ -132,7 +132,28 @@ function parseCurrency(v) {
     }
 
     return parseFloat(str) || 0;
+} */
+
+
+function parseCurrency(v) {
+    if (!v || !String(v).trim()) return 0;
+    let str = String(v).trim();
+    const isNegative = str.startsWith('-');  // ✅ Detecta negativo
+    str = str.replace(/R\$/g, '').trim();
+    if (isNegative) str = str.substring(1);
+    const lastComma = str.lastIndexOf(',');
+    const lastDot = str.lastIndexOf('.');
+    if (lastComma > lastDot) {
+        str = str.replace(/\./g, '').replace(',', '.');
+    } else if (lastDot > lastComma) {
+        str = str.replace(/,/g, '');
+    } else {
+        str = str.replace(/[.,]/g, '');
+    }
+    const result = parseFloat(str) || 0;
+    return isNegative ? -result : result;  // ✅ Retorna negativo
 }
+
 
 function fmtCurrency(n) {
     return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

@@ -7,7 +7,7 @@
     <div class="max-w-7xl mx-auto">
         <!-- Navbar -->
         <div class="mb-6 flex justify-between items-center">
-            <button onclick="window.location.href='/'"
+            <button onclick="voltarInteligente()"
                 class="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-2">
                 ← Menu
             </button>
@@ -100,13 +100,19 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
+103 {% block extra_js %}
+104
 <script>
-    // Inicializar quando a página carregar
-    document.addEventListener('DOMContentLoaded', function () {
-        if (typeof initComissao === 'function') {
-            initComissao();
+    105      document.addEventListener('DOMContentLoaded', function () {
+        106          if (typeof initComissao === 'function') {
+            107              initComissao();
+            108
         }
+        109          if (typeof definirOrigem === 'function') {
+            110              definirOrigem('relatorios');
+            111
+        }
+        112
     });
-</script>
-{% endblock %}
+    113  </script>
+114 {% endblock %}

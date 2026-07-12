@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro de Situações por Instituição - KTSistema{% endblock %}
+
+{% block body %}
+<div id="view-cadastro-inst-sit" class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Navbar -->
+        <div class="mb-6 flex justify-between items-center">
+            <button onclick="window.location.href='/cadastros'"
+                class="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-2">
+                ← Menu
+            </button>
+            <h1 class="text-2xl font-bold text-gray-800">📋 Cadastro de Situações por Instituição</h1>
+            <div></div>
+        </div>
+
+        <!-- Formulário -->
+        <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg mb-6">
+            <!-- Modo de Edição -->
+            <div id="modo-edicao" class="hidden bg-yellow-50 border-2 border-yellow-400 p-3 rounded-lg mb-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-yellow-800">✏️ Modo de Edição</h3>
+                    <button onclick="cancelarEdicao()"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded text-sm font-medium">
+                        ❌ Cancelar Edição
+                    </button>
+                </div>
+                <p class="text-sm text-yellow-700 mt-1">Você está editando um relacionamento existente.</p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg mb-4 border">
+                <h3 class="text-lg font-bold text-gray-700 mb-3" id="titulo-formulario">🆕 Novo Cadastro</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <!-- Instituição -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Instituição *</label>
+                        <select id="inst_id"
+                            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+
+                    <!-- Situação -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Situação *</label>
+                        <select id="sit_id"
+                            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="button" id="btn-salvar" onclick="salvarRelacionamento()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium">
+                        💾 Salvar
+                    </button>
+                    <button type="button" onclick="limparFormulario()"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded text-sm font-medium">
+                        🗑️ Limpar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros de Pesquisa -->
+            <div class="bg-blue-50 p-4 rounded-lg mb-4 border border-blue-200">
+                <h3 class="text-lg font-bold text-gray-700 mb-3">🔍 Pesquisar</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <!-- Filtro por Instituição -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Filtrar por Instituição</label>
+                        <select id="filtro_inst" onchange="aplicarFiltros()"
+                            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+
+                    <!-- Filtro por Situação -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Filtrar por Situação</label>
+                        <select id="filtro_sit" onchange="aplicarFiltros()"
+                            class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="button" onclick="limparFiltros()"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded text-sm font-medium">
+                        🗑️ Limpar Filtros
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista de Relacionamentos -->
+            <div class="bg-gray-50 p-4 rounded-lg border">
+                <h3 class="text-lg font-bold text-gray-700 mb-3">📊 Relacionamentos Cadastrados</h3>
+
+                <div class="table-scroll border rounded">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm" id="tabela-relacionamentos">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 uppercase">ID Inst
+                                </th>
+                                <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 uppercase">
+                                    Instituição</th>
+                                <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 uppercase">ID Sit
+                                </th>
+                                <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 uppercase">Situação
+                                </th>
+                                <th class="px-3 py-2 text-center text-xs font-semibold text-gray-600 uppercase">Ações
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body-relacionamentos" class="bg-white divide-y divide-gray-100">
+                            <!-- Preenchido via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <p id="total-info" class="mt-2 text-xs text-gray-500 text-center"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div id="modal-exclusao-inst-sit"
+    class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">⚠️ Confirmar Exclusão</h3>
+        <p class="text-gray-600 mb-6">Deseja realmente excluir este relacionamento?</p>
+        <div class="flex gap-2 justify-end">
+            <button onclick="fecharModalExclusao()"
+                class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded text-sm font-medium">
+                Cancelar
+            </button>
+            <button onclick="confirmarExclusao()"
+                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium">
+                Excluir
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/cadastro_instituicao_situacao.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        carregarInstituicoes();
+        carregarSituacoes();
+        carregarRelacionamentos();
+    });
+</script>
+{% endblock %}

@@ -7,7 +7,7 @@
     <div class="max-w-7xl mx-auto">
         <!-- Navbar -->
         <div class="mb-6 flex justify-between items-center">
-            <button onclick="window.location.href='/'"
+            <button onclick="window.location.href='/relatorios'"
                 class="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-2">
                 ← Menu
             </button>
@@ -80,10 +80,17 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/nf_recibo.js') }}"></script>
 <script>
-    // Inicializar quando a página carregar
     document.addEventListener('DOMContentLoaded', function () {
-        carregarInstituicoes();
+        if (typeof carregarInstituicoes === 'function') {
+            carregarInstituicoes();
+        }
+
+        // Definir origem como relatórios
+        if (typeof definirOrigem === 'function') {
+            definirOrigem('relatorios');
+        }
     });
 </script>
 {% endblock %}

@@ -1,32 +1,3 @@
-""" from flask import Flask, render_template, request, jsonify, redirect, url_for, session
-import gspread
-
-from datetime import datetime
-import json
-
-from google.oauth2.service_account import Credentials
-from services.sheets_service import SheetsService
-
-from werkzeug.security import generate_password_hash, check_password_hash
-
-app = Flask(__name__)
-
-app.secret_key = 'kt-sistema-secret-key-2026-sidnei-carraco'
-
-# --- Autenticação e instância global do serviço ---
-SCOPES = [
-    'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/drive'
-]
-CREDENTIALS_FILE = 'credentials.json'
-SPREADSHEET_ID = '10fk1QX_RxfRQ6AYo-sZz0lD6hdQ-VxCS1w_fJ4CDFmQ'
-
-creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
-client = gspread.authorize(creds)
-ss = client.open_by_key(SPREADSHEET_ID)
-sheets_backend = SheetsService(ss) """
-
-
 import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import gspread
@@ -61,7 +32,10 @@ else:
 client = gspread.authorize(creds)
 
 # ID da planilha (variável de ambiente em produção, fixa em desenvolvimento)
-SPREADSHEET_ID = os.environ.get('SPREADSHEET_ID', '1sflCfve7RztRbzD1GB57_BTbf0CJrBx7uxlDZ-8nr9U')
+# SPREADSHEET_ID = os.environ.get('SPREADSHEET_ID', '1sflCfve7RztRbzD1GB57_BTbf0CJrBx7uxlDZ-8nr9U')
+# SPREADSHEET_ID = os.environ.get('SPREADSHEET_ID', '1UdvKMXwKNDNK-14W53V8VRbZzbPi9l08tY0GSyee-Dk')
+SPREADSHEET_ID = os.environ.get('SPREADSHEET_ID', '10fk1QX_RxfRQ6AYo-sZz0lD6hdQ-VxCS1w_fJ4CDFmQ')
+
 ss = client.open_by_key(SPREADSHEET_ID)
 sheets_backend = SheetsService(ss)
 
@@ -80,6 +54,35 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def requer_auth(f):
+    """Decorator para APIs: retorna JSON 401 se não autenticado."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            # Verificar sessão de forma explícita
+            usuario = session.get('usuario')
+            email = session.get('email')
+            
+            # Debug: mostrar o que está na sessão
+            print(f"[AUTH] Verificando sessão - usuario: {bool(usuario)}, email: {bool(email)}")
+            
+            if not usuario and not email:
+                print("[AUTH] ❌ Sessão vazia! Retornando 401")
+                return jsonify({
+                    "success": False,
+                    "error": "Sessão expirada. Faça login novamente."
+                }), 401
+            
+            print("[AUTH] ✅ Sessão válida")
+            return f(*args, **kwargs)
+        except Exception as e:
+            print(f"[AUTH] ❌ Erro no decorator: {e}")
+            return jsonify({
+                "success": False,
+                "error": f"Erro de autenticação: {str(e)}"
+            }), 500
+    return decorated_function
+
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -89,8 +92,6 @@ def admin_required(f):
             return jsonify({"success": False, "error": "Acesso negado"}), 403
         return f(*args, **kwargs)
     return decorated_function
-
-
 
 @app.route('/')
 @login_required
@@ -285,12 +286,17 @@ def login():
                 session['nome'] = usuario_encontrado['nome']
                 session['username'] = usuario_encontrado['username']
                 session['tipo'] = usuario_encontrado['tipo']
-                
+    
+                # Verificar se há uma URL de destino (parâmetro ?next=)
+                next_page = request.args.get('next', '/')
+
                 return jsonify({
                     "success": True,
                     "usuario": usuario_encontrado,
-                    "redirect": "/"
-                })
+                "redirect": next_page
+            })
+
+
             else:
                 return jsonify({
                     "success": False,
@@ -1163,38 +1169,67 @@ def api_instituicoes():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/relatorio')
+@login_required
 def relatorio():
-    """Retorna a página de relatório."""
+    """Página de Relatórios Gerais"""
     return render_template('relatorio/form_relatorio.html')
 
-    # ==================== INICIAR SERVIDOR ====================
-
-""" if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000) """
 
 # ==================== CADASTRO DE CLIENTES ====================
 
 @app.route('/cadastro-clientes')
 def cadastro_clientes():
     """Página de Cadastro de Clientes (Instituições)"""
-    if 'usuario_logado' not in session:
-        return redirect(url_for('login'))
+    if 'usuario' not in session:
+        return redirect(url_for('login', next=request.path))
     return render_template('cad_clientes.html')
+
+@app.route('/api/clientes/proximo-id', methods=['GET'])
+def proximo_id_cliente():
+    # Verificação manual de autenticação
+    if 'usuario' not in session:
+        return jsonify({"success": False, "error": "Não autorizado"}), 401
+    """Retorna o próximo ID disponível para novo cliente."""
+    try:
+        aba = sheets_backend._obter_aba('cadClientes')
+        
+        dados_coluna_a = aba.get('A2:A10000')
+        
+        if not dados_coluna_a:
+            return jsonify({"success": True, "proximo_id": 1})
+        
+        maior_id = 0
+        for linha in dados_coluna_a:
+            if linha and len(linha) > 0 and linha[0]:
+                try:
+                    id_atual = int(linha[0])
+                    if id_atual > maior_id:
+                        maior_id = id_atual
+                except (ValueError, TypeError):
+                    continue
+        
+        proximo_id = maior_id + 1
+        
+        return jsonify({"success": True, "proximo_id": proximo_id})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/clientes', methods=['GET'])
 def listar_clientes():
+    # Verificação manual de autenticação
+    if 'usuario' not in session:
+        return jsonify({"success": False, "error": "Não autorizado"}), 401
     """API: Listar todos os clientes"""
     try:
         aba = sheets_backend._obter_aba('cadClientes')
-        dados = aba.get('A2:S1000')  # A partir da linha 2
+        dados = aba.get('A2:S1000')
         
         if not dados:
             return jsonify({"success": True, "dados": []})
         
-        # Converter para lista de dicionários
         clientes = []
         for linha in dados:
-            if linha and any(linha):  # Ignorar linhas vazias
+            if linha and any(linha):
                 cliente = {
                     'id': linha[0] if len(linha) > 0 else '',
                     'instituicao': linha[1] if len(linha) > 1 else '',
@@ -1224,21 +1259,34 @@ def listar_clientes():
 
 @app.route('/api/clientes', methods=['POST'])
 def salvar_cliente():
+    # Verificação manual de autenticação
+    if 'usuario' not in session:
+        return jsonify({"success": False, "error": "Não autorizado"}), 401
     """API: Salvar novo cliente"""
     try:
         dados = request.json
         aba = sheets_backend._obter_aba('cadClientes')
         
-        # Gerar próximo ID
-        ultima_linha = len(aba.col_values(1)) + 1
+        # Gerar próximo ID (baseado no maior ID existente + 1)
+        dados_coluna_a = aba.get('A2:A10000')
+        maior_id = 0
+        if dados_coluna_a:
+            for linha in dados_coluna_a:
+                if linha and len(linha) > 0 and linha[0]:
+                    try:
+                        id_atual = int(linha[0])
+                        if id_atual > maior_id:
+                            maior_id = id_atual
+                    except (ValueError, TypeError):
+                        continue
+        proximo_id = maior_id + 1
         
         # Converter para maiúsculas
         instituicao = str(dados.get('instituicao', '')).upper()
         assistencia = str(dados.get('assistencia', '')).upper()
         
-        # Preparar dados para gravação
         linha = [
-            ultima_linha - 1,  # ID automático
+            proximo_id,
             instituicao,
             assistencia,
             dados.get('nome_fantasia', ''),
@@ -1259,7 +1307,6 @@ def salvar_cliente():
             dados.get('observacoes', '')
         ]
         
-        # Gravar na planilha
         aba.append_row(linha)
         
         return jsonify({"success": True, "message": "Cliente cadastrado com sucesso!"})
@@ -1268,12 +1315,14 @@ def salvar_cliente():
 
 @app.route('/api/clientes/<int:id_cliente>', methods=['PUT'])
 def atualizar_cliente(id_cliente):
+    # Verificação manual de autenticação
+    if 'usuario' not in session:
+        return jsonify({"success": False, "error": "Não autorizado"}), 401
     """API: Atualizar cliente existente"""
     try:
         dados = request.json
         aba = sheets_backend._obter_aba('cadClientes')
         
-        # Encontrar linha do cliente
         dados_planilha = aba.get('A2:S1000')
         linha_encontrada = None
         
@@ -1285,11 +1334,9 @@ def atualizar_cliente(id_cliente):
         if not linha_encontrada:
             return jsonify({"success": False, "error": "Cliente não encontrado"}), 404
         
-        # Converter para maiúsculas
         instituicao = str(dados.get('instituicao', '')).upper()
         assistencia = str(dados.get('assistencia', '')).upper()
         
-        # Atualizar dados
         atualizacoes = [
             {'range': f'B{linha_encontrada}', 'values': [[instituicao]]},
             {'range': f'C{linha_encontrada}', 'values': [[assistencia]]},
@@ -1311,20 +1358,21 @@ def atualizar_cliente(id_cliente):
             {'range': f'S{linha_encontrada}', 'values': [[dados.get('observacoes', '')]]},
         ]
         
-        # Aplicar atualizações
         aba.batch_update(atualizacoes, value_input_option="USER_ENTERED")
         
         return jsonify({"success": True, "message": "Cliente atualizado com sucesso!"})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/clientes/<int:id_cliente>', methods=['DELETE'])
-def excluir_cliente(id_cliente):
-    """API: Excluir cliente"""
+""" @app.route('/api/clientes/<int:id_cliente>', methods=['DELETE'])
+@requer_auth """
+
+"""" def excluir_cliente(id_cliente): """
+
+"""API: Excluir cliente
     try:
         aba = sheets_backend._obter_aba('cadClientes')
         
-        # Encontrar linha do cliente
         dados_planilha = aba.get('A2:S1000')
         linha_encontrada = None
         
@@ -1336,14 +1384,426 @@ def excluir_cliente(id_cliente):
         if not linha_encontrada:
             return jsonify({"success": False, "error": "Cliente não encontrado"}), 404
         
-        # Excluir linha
         aba.delete_rows(linha_encontrada)
         
         return jsonify({"success": True, "message": "Cliente excluído com sucesso!"})
     except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500 """
+
+
+@app.route('/api/clientes/<int:id_cliente>', methods=['DELETE'])
+def excluir_cliente(id_cliente):
+    """API: Excluir cliente"""
+    print(f"\n{'='*50}")
+    print(f"[EXCLUIR] >>> ID recebido: {id_cliente} (tipo: {type(id_cliente).__name__})")
+    print(f"[EXCLUIR] >>> Sessão keys: {list(session.keys())}")
+    
+    # Verificação manual de autenticação
+    if 'usuario' not in session:
+        print("[EXCLUIR] >>>  Usuário não autenticado")
+        return jsonify({"success": False, "error": "Não autorizado"}), 401
+    
+    try:
+        aba = sheets_backend._obter_aba('cadClientes')
+        print(f"[EXCLUIR] >>> ✅ Aba 'cadClientes' obtida")
+        
+        dados_planilha = aba.get('A2:S1000')
+        print(f"[EXCLUIR] >>> Linhas lidas: {len(dados_planilha) if dados_planilha else 0}")
+        
+        linha_encontrada = None
+        
+        for idx, linha in enumerate(dados_planilha, start=2):
+            if linha and str(linha[0]) == str(id_cliente):
+                linha_encontrada = idx
+                print(f"[EXCLUIR] >>> ✅ Cliente {id_cliente} encontrado na linha {linha_encontrada}")
+                break
+        
+        if not linha_encontrada:
+            print(f"[EXCLUIR] >>> ❌ Cliente {id_cliente} NÃO encontrado na planilha")
+            return jsonify({"success": False, "error": "Cliente não encontrado"}), 404
+        
+        print(f"[EXCLUIR] >>> Excluindo linha {linha_encontrada}...")
+        aba.delete_rows(linha_encontrada)
+        print(f"[EXCLUIR] >>> ✅ Exclusão concluída com sucesso!")
+        print(f"{'='*50}\n")
+        
+        return jsonify({"success": True, "message": "Cliente excluído com sucesso!"})
+    except Exception as e:
+        print(f"[EXCLUIR] >>> ❌ Erro: {e}")
+        import traceback
+        traceback.print_exc()
+        print(f"{'='*50}\n")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+
+@app.route('/debug-sessao')
+def debug_sessao():
+    """Endpoint de debug para verificar sessão."""
+    return jsonify({
+        "success": True,
+        "session_keys": list(session.keys()),
+        "tem_usuario": bool(session.get('usuario')),
+        "tem_email": bool(session.get('email')),
+        "usuario": session.get('usuario'),
+        "email": session.get('email'),
+        "nome": session.get('nome'),
+        "tipo": session.get('tipo')
+    })
+
+
+# ==================== CADASTRO DE SERVIÇOS ====================
+
+@app.route('/cadastro-servicos')
+def cadastro_servicos():
+    """Página de Cadastro de Tipos de Serviços"""
+    if 'usuario' not in session:
+        return redirect(url_for('login', next=request.path))
+    return render_template('cad_servicos.html')
+
+@app.route('/api/servicos/proximo-id', methods=['GET'])
+def proximo_id_servico():
+    """Retorna o próximo ID disponível para novo tipo de serviço."""
+    if 'usuario' not in session:
+        return jsonify({"success": False, "error": "Não autorizado"}), 401
+    
+    try:
+        aba = sheets_backend._obter_aba('cadServicos')
+        dados_coluna_a = aba.get('A2:A10000')
+        
+        if not dados_coluna_a:
+            return jsonify({"success": True, "proximo_id": 1})
+        
+        maior_id = 0
+        for linha in dados_coluna_a:
+            if linha and len(linha) > 0 and linha[0]:
+                try:
+                    id_atual = int(linha[0])
+                    if id_atual > maior_id:
+                        maior_id = id_atual
+                except (ValueError, TypeError):
+                    continue
+        
+        return jsonify({"success": True, "proximo_id": maior_id + 1})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/servicos', methods=['GET'])
+def listar_servicos():
+    """API: Listar todos os serviços"""
+    if 'usuario' not in session:
+        return jsonify({"success": False, "error": "Não autorizado"}), 401
+    
+    try:
+        aba = sheets_backend._obter_aba('cadServicos')
+        dados = aba.get('A2:B1000')
+        
+        if not dados:
+            return jsonify({"success": True, "dados": []})
+        
+        servicos = []
+        for linha in dados:
+            if linha and any(linha):
+                servicos.append({
+                    'id': linha[0] if len(linha) > 0 else '',
+                    'servico': linha[1] if len(linha) > 1 else ''
+                })
+        
+        return jsonify({"success": True, "dados": servicos})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/servicos', methods=['POST'])
+def salvar_servico():
+    """API: Salvar novo tipo de serviço"""
+    if 'usuario' not in session:
+        return jsonify({"success": False, "error": "Não autorizado"}), 401
+    
+    try:
+        dados = request.json
+        aba = sheets_backend._obter_aba('cadServicos')
+        
+        # Gerar próximo ID
+        dados_coluna_a = aba.get('A2:A10000')
+        maior_id = 0
+        if dados_coluna_a:
+            for linha in dados_coluna_a:
+                if linha and len(linha) > 0 and linha[0]:
+                    try:
+                        id_atual = int(linha[0])
+                        if id_atual > maior_id:
+                            maior_id = id_atual
+                    except (ValueError, TypeError):
+                        continue
+        proximo_id = maior_id + 1
+        
+        # Converter para maiúsculas
+        servico = str(dados.get('servico', '')).upper()
+        
+        linha = [proximo_id, servico]
+        aba.append_row(linha)
+        
+        return jsonify({"success": True, "message": "Tipo de serviço cadastrado com sucesso!"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/servicos/<servico_id>', methods=['PUT'])
+def atualizar_servico(servico_id):
+    """API: Atualizar tipo de serviço existente"""
+    if 'usuario' not in session:
+        return jsonify({"success": False, "error": "Não autorizado"}), 401
+    
+    try:
+        dados = request.json
+        aba = sheets_backend._obter_aba('cadServicos')
+        
+        dados_planilha = aba.get('A2:B1000')
+        linha_encontrada = None
+        
+        for idx, linha in enumerate(dados_planilha, start=2):
+            if linha and str(linha[0]) == str(servico_id):
+                linha_encontrada = idx
+                break
+        
+        if not linha_encontrada:
+            return jsonify({"success": False, "error": "Serviço não encontrado"}), 404
+        
+        servico = str(dados.get('servico', '')).upper()
+        
+        atualizacoes = [
+            {'range': f'B{linha_encontrada}', 'values': [[servico]]}
+        ]
+        
+        aba.batch_update(atualizacoes, value_input_option="USER_ENTERED")
+        
+        return jsonify({"success": True, "message": "Tipo de serviço atualizado com sucesso!"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/servicos/<servico_id>', methods=['DELETE'])
+def excluir_servico(servico_id):
+    """API: Excluir tipo de serviço"""
+    if 'usuario' not in session:
+        return jsonify({"success": False, "error": "Não autorizado"}), 401
+    
+    try:
+        aba = sheets_backend._obter_aba('cadServicos')
+        
+        dados_planilha = aba.get('A2:B1000')
+        linha_encontrada = None
+        
+        for idx, linha in enumerate(dados_planilha, start=2):
+            if linha and str(linha[0]) == str(servico_id):
+                linha_encontrada = idx
+                break
+        
+        if not linha_encontrada:
+            return jsonify({"success": False, "error": "Serviço não encontrado"}), 404
+        
+        aba.delete_rows(linha_encontrada)
+        
+        return jsonify({"success": True, "message": "Tipo de serviço excluído com sucesso!"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ======================================================
+# === CADASTRO DE SITUAÇÕES POR INSTITUIÇÃO ===
+# ======================================================
+
+@app.route('/cadastro-instituicao-situacao')
+def cadastro_instituicao_situacao():
+    """Página de Cadastro de Situações por Instituição"""
+    return render_template('cadastro_instituicao_situacao.html')
+
+@app.route('/api/instituicoes-lista', methods=['GET'])
+def api_instituicoes_lista():
+    """Retorna lista de instituições ordenadas para dropdown"""
+    try:
+        # Buscar da aba cadClientes
+        aba_clientes = sheets_backend._obter_aba('cadClientes')
+        dados = aba_clientes.get('A2:C1000')  # ID, Instituição, Assistência
+        
+        instituicoes = []
+        for linha in dados:
+            if linha and len(linha) >= 2 and linha[0] and linha[1]:
+                instituicoes.append({
+                    'id': linha[0],
+                    'nome': linha[1].strip()
+                })
+        
+        # Ordenar alfabeticamente por nome
+        instituicoes.sort(key=lambda x: x['nome'].upper())
+        
+        return jsonify({
+            'success': True,
+            'instituicoes': instituicoes
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/situacoes-lista', methods=['GET'])
+def api_situacoes_lista():
+    """Retorna lista de situações ordenadas para dropdown"""
+    try:
+        # Buscar da aba cadSituacoes
+        aba_situacoes = sheets_backend._obter_aba('cadSituacoes')
+        dados = aba_situacoes.get('A2:B1000')  # ID, Situação
+        
+        situacoes = []
+        for linha in dados:
+            if linha and len(linha) >= 2 and linha[0] and linha[1]:
+                situacoes.append({
+                    'id': linha[0],
+                    'nome': linha[1].strip()
+                })
+        
+        # Ordenar alfabeticamente por nome
+        situacoes.sort(key=lambda x: x['nome'].upper())
+        
+        return jsonify({
+            'success': True,
+            'situacoes': situacoes
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/instituicao-situacao-lista', methods=['GET'])
+def api_instituicao_situacao_lista():
+    """Retorna lista de relacionamentos Instituição-Situação"""
+    try:
+        aba = sheets_backend._obter_aba('Instituicao_Situacao')
+        dados = aba.get('A2:D1000')
+        
+        relacionamentos = []
+        for linha in dados:
+            if linha and len(linha) >= 4:
+                relacionamentos.append({
+                    'inst_id': linha[0],
+                    'sit_id': linha[1],
+                    'instituicao': linha[2],
+                    'situacao': linha[3]
+                })
+        
+        return jsonify({
+            'success': True,
+            'dados': relacionamentos
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/instituicao-situacao', methods=['POST'])
+def api_salvar_instituicao_situacao():
+    """Salvar novo relacionamento Instituição-Situação"""
+    try:
+        dados = request.json
+        inst_id = dados.get('inst_id')
+        sit_id = dados.get('sit_id')
+        instituicao = dados.get('instituicao')
+        situacao = dados.get('situacao')
+        
+        if not inst_id or not sit_id:
+            return jsonify({'success': False, 'error': 'ID da Instituição e Situação são obrigatórios'}), 400
+        
+        # Verificar se já existe este relacionamento
+        aba = sheets_backend._obter_aba('Instituicao_Situacao')
+        dados_existentes = aba.get('A2:D1000')
+        
+        for linha in dados_existentes:
+            if linha and len(linha) >= 2:
+                if str(linha[0]) == str(inst_id) and str(linha[1]) == str(sit_id):
+                    return jsonify({
+                        'success': False, 
+                        'error': f'Esta situação já está cadastrada para a instituição {instituicao}'
+                    }), 400
+        
+        # Inserir nova linha
+        ultima_linha = aba.row_count
+        nova_linha = [inst_id, sit_id, instituicao, situacao]
+        aba.append_row(nova_linha)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Relacionamento cadastrado com sucesso!'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/instituicao-situacao/<int:linha>', methods=['DELETE'])
+def api_excluir_instituicao_situacao(linha):
+    """Excluir relacionamento Instituição-Situação"""
+    try:
+        aba = sheets_backend._obter_aba('Instituicao_Situacao')
+        
+        # Excluir linha (linha + 1 porque cabeçalho está na linha 1)
+        aba.delete_rows(linha + 1)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Relacionamento excluído com sucesso!'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+
+@app.route('/api/instituicao-situacao/<int:linha>', methods=['PUT'])
+def api_atualizar_instituicao_situacao(linha):
+    """Atualizar relacionamento Instituição-Situação"""
+    try:
+        dados = request.json
+        inst_id = dados.get('inst_id')
+        sit_id = dados.get('sit_id')
+        instituicao = dados.get('instituicao')
+        situacao = dados.get('situacao')
+        
+        if not inst_id or not sit_id:
+            return jsonify({'success': False, 'error': 'ID da Instituição e Situação são obrigatórios'}), 400
+        
+        aba = sheets_backend._obter_aba('Instituicao_Situacao')
+        dados_existentes = aba.get('A2:D1000')
+        
+        # Verificar se já existe este relacionamento (exceto o próprio registro sendo editado)
+        for i, row in enumerate(dados_existentes):
+            if row and len(row) >= 2:
+                # Pular o próprio registro sendo editado (linha - 2 porque começa em A2)
+                if i == (linha - 2):
+                    continue
+                
+                if str(row[0]) == str(inst_id) and str(row[1]) == str(sit_id):
+                    return jsonify({
+                        'success': False, 
+                        'error': f'Esta situação já está cadastrada para a instituição {instituicao}'
+                    }), 400
+        
+        # Atualizar linha (linha + 1 porque cabeçalho está na linha 1)
+        nova_linha = [inst_id, sit_id, instituicao, situacao]
+        aba.update(f'A{linha + 1}:D{linha + 1}', [nova_linha])
+        
+        return jsonify({
+            'success': True,
+            'message': 'Relacionamento atualizado com sucesso!'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ======================================================
+# === PÁGINAS DE CADASTROS E RELATÓRIOS ===
+# ======================================================
+
+@app.route('/cadastros')
+def cadastros():
+    """Página de Cadastros (submenu)"""
+    return render_template('cadastros.html')
+
+@app.route('/relatorios')
+def relatorios_menu():
+    """Página de Relatórios (submenu)"""
+    return render_template('relatorios.html')
+
+
+    # ==================== INICIAR SERVIDOR ====================
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

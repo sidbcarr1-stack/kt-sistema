@@ -6,8 +6,10 @@ async function carregarInstituicoes() {
 
         if (result.success) {
             const select = document.getElementById('instituicao');
-            select.innerHTML = '<option value="">Todas</option>' +
-                result.instituicoes.map(inst => `<option value="${inst}">${inst}</option>`).join('');
+            if (select) {
+                select.innerHTML = '<option value="">Todas</option>' +
+                    result.instituicoes.map(inst => `<option value="${inst}">${inst}</option>`).join('');
+            }
         }
     } catch (e) {
         console.error('Erro ao carregar instituições:', e);
@@ -16,9 +18,22 @@ async function carregarInstituicoes() {
 
 // ==================== CARREGAR RELATÓRIO ====================
 async function carregarRelatorio() {
-    const instituicao = document.getElementById('instituicao').value;
-    const dataInicio = document.getElementById('data-inicio').value;
-    const dataFinal = document.getElementById('data-final').value;
+    // Verificar se elementos existem antes de acessar
+    const instituicaoEl = document.getElementById('instituicao');
+    const dataInicioEl = document.getElementById('data-inicio');
+    const dataFinalEl = document.getElementById('data-final');
+
+    if (!instituicaoEl || !dataInicioEl || !dataFinalEl) {
+        console.error('Elementos do formulário não encontrados!');
+        console.log('instituicao:', !!instituicaoEl);
+        console.log('data-inicio:', !!dataInicioEl);
+        console.log('data-final:', !!dataFinalEl);
+        return;
+    }
+
+    const instituicao = instituicaoEl.value;
+    const dataInicio = dataInicioEl.value;
+    const dataFinal = dataFinalEl.value;
 
     const container = document.getElementById('view-nf-recibo');
     if (container) container.classList.add('loading');
@@ -36,9 +51,14 @@ async function carregarRelatorio() {
 
         renderizarTabelaNFRecibo(result.dados);
 
-        document.getElementById('total-qtde').textContent = result.total_qtde;
-        document.getElementById('total-valor').textContent = fmtCurrency(result.total_valor);
-        document.getElementById('total-info').textContent = `Total de instituições: ${result.dados.length}`;
+        // Verificar se elementos de total existem
+        const totalQtdeEl = document.getElementById('total-qtde');
+        const totalValorEl = document.getElementById('total-valor');
+        const totalInfoEl = document.getElementById('total-info');
+
+        if (totalQtdeEl) totalQtdeEl.textContent = result.total_qtde;
+        if (totalValorEl) totalValorEl.textContent = fmtCurrency(result.total_valor);
+        if (totalInfoEl) totalInfoEl.textContent = `Total de instituições: ${result.dados.length}`;
 
     } catch (e) {
         console.error('Erro:', e);
@@ -51,6 +71,11 @@ async function carregarRelatorio() {
 // ==================== RENDERIZAR TABELA ====================
 function renderizarTabelaNFRecibo(dados) {
     const tbody = document.getElementById('table-body-nf-recibo');
+
+    if (!tbody) {
+        console.error('Elemento table-body-nf-recibo não encontrado!');
+        return;
+    }
 
     if (!dados || dados.length === 0) {
         tbody.innerHTML = `<tr><td colspan="3" class="px-3 py-8 text-center text-gray-500">Nenhum registro encontrado</td></tr>`;
@@ -70,24 +95,35 @@ function renderizarTabelaNFRecibo(dados) {
 
 // ==================== LIMPAR FILTROS ====================
 function limparFiltros() {
-    document.getElementById('instituicao').value = '';
-    document.getElementById('data-inicio').value = '';
-    document.getElementById('data-final').value = '';
-    document.getElementById('table-body-nf-recibo').innerHTML = '';
-    document.getElementById('total-qtde').textContent = '0';
-    document.getElementById('total-valor').textContent = 'R$ 0,00';
-    document.getElementById('total-info').textContent = '';
+    // Verificar se elementos existem antes de acessar
+    const instituicaoEl = document.getElementById('instituicao');
+    const dataInicioEl = document.getElementById('data-inicio');
+    const dataFinalEl = document.getElementById('data-final');
+    const tbodyEl = document.getElementById('table-body-nf-recibo');
+    const totalQtdeEl = document.getElementById('total-qtde');
+    const totalValorEl = document.getElementById('total-valor');
+    const totalInfoEl = document.getElementById('total-info');
+
+    if (instituicaoEl) instituicaoEl.value = '';
+    if (dataInicioEl) dataInicioEl.value = '';
+    if (dataFinalEl) dataFinalEl.value = '';
+    if (tbodyEl) tbodyEl.innerHTML = '';
+    if (totalQtdeEl) totalQtdeEl.textContent = '0';
+    if (totalValorEl) totalValorEl.textContent = 'R$ 0,00';
+    if (totalInfoEl) totalInfoEl.textContent = '';
 }
 
 // ==================== EXPORTAR PDF ====================
 function exportarPDF() {
     const tbody = document.getElementById('table-body-nf-recibo');
+
     if (!tbody || tbody.children.length === 0) {
         alert('Não há dados para exportar');
         return;
     }
 
-    const instituicao = document.getElementById('instituicao').value || 'Todas';
+    const instituicaoEl = document.getElementById('instituicao');
+    const instituicao = instituicaoEl ? (instituicaoEl.value || 'Todas') : 'Todas';
 
     // Converter datas de YYYY-MM-DD para DD/MM/YYYY
     function formatarDataBR(dataISO) {
@@ -99,10 +135,15 @@ function exportarPDF() {
         return dataISO;
     }
 
-    const dataInicio = formatarDataBR(document.getElementById('data-inicio').value);
-    const dataFinal = formatarDataBR(document.getElementById('data-final').value);
-    const totalQtde = document.getElementById('total-qtde').textContent;
-    const totalValor = document.getElementById('total-valor').textContent;
+    const dataInicioEl = document.getElementById('data-inicio');
+    const dataFinalEl = document.getElementById('data-final');
+    const totalQtdeEl = document.getElementById('total-qtde');
+    const totalValorEl = document.getElementById('total-valor');
+
+    const dataInicio = formatarDataBR(dataInicioEl ? dataInicioEl.value : '');
+    const dataFinal = formatarDataBR(dataFinalEl ? dataFinalEl.value : '');
+    const totalQtde = totalQtdeEl ? totalQtdeEl.textContent : '0';
+    const totalValor = totalValorEl ? totalValorEl.textContent : 'R$ 0,00';
 
     const agora = new Date();
     const dataStr = agora.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }).replace(/\//g, '');

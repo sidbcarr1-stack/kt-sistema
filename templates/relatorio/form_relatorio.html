@@ -1,3 +1,8 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de Serviços - KTSistema{% endblock %}
+
+{% block body %}
 <div id="view-relatorio" class="bg-white p-4 md:p-6 rounded-xl shadow-lg">
     <div class="bg-gray-50 p-4 rounded-lg mb-4 border">
         <h3 class="text-sm font-bold text-gray-700 mb-3">🔍 Filtros do Relatório</h3>
@@ -57,7 +62,6 @@
                 <label class="block text-xs font-bold text-gray-600 mb-1">Data Fim</label>
                 <input type="date" id="filtro_data2_fim" class="w-full border p-2 rounded text-sm">
             </div>
-            <!-- Total dos valores -->
             <div id="total-valores-relatorio" class="hidden flex items-end">
                 <div class="w-full p-2 bg-blue-50 border border-blue-200 rounded-lg text-right">
                     <span class="text-xs text-gray-600">Total: </span>
@@ -65,13 +69,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Total dos valores -->
-        <!--  <div id="total-valores-relatorio"
-            class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-right hidden">
-            <span class="text-sm text-gray-600">Total dos Valores: </span>
-            <span id="total-valores" class="text-lg font-bold text-blue-900">R$ 0,00</span>
-        </div> -->
 
         <div class="flex gap-2">
             <button type="button" onclick="carregarRelatorio()"
@@ -109,11 +106,16 @@
     </div>
 
     <p id="total-info-relatorio" class="mt-2 text-xs text-gray-500 text-center"></p>
-
-    <!--    <p id="total-info-relatorio" class="mt-2 text-xs text-gray-500 text-center"></p>
-    Total dos valores -->
-    <!--     <div id="total-valores-relatorio" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-right hidden">
-        <span class="text-sm text-gray-600">Total dos Valores: </span>
-        <span id="total-valores" class="text-lg font-bold text-blue-900">R$ 0,00</span>
-    </div> -->
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/relatorio.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof initRelatorio === 'function') {
+            initRelatorio();
+        }
+    });
+</script>
+{% endblock %}

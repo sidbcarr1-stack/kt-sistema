@@ -5,59 +5,67 @@
 {% block body %}
 <!-- ==================== MENU PRINCIPAL ==================== -->
 <div id="menu-principal" class="min-h-screen flex flex-col items-center justify-center p-6">
-    <div class="text-center mb-12">
-        <h1 class="text-5xl font-bold text-gray-800 mb-4">🚛 KTSistema</h1>
-        <p class="text-xl text-gray-600">Gestão de Ordens de Serviço</p>
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-2">🚛 KTSistema</h1>
+        <p class="text-lg text-gray-600">Gestão de Ordens de Serviço</p>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl w-full">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl w-full">
+        <!-- Novo Cadastro -->
         <div onclick="abrirCadastro()"
-            class="menu-card bg-white rounded-2xl p-8 cursor-pointer border-2 border-transparent hover:border-blue-500">
-            <div class="menu-icon text-center">📝</div>
-            <h2 class="text-2xl font-bold text-gray-800 text-center mb-2">Novo Cadastro</h2>
-            <p class="text-gray-600 text-center text-sm">Registrar nova ordem de serviço</p>
+            class="menu-card bg-white rounded-xl p-6 cursor-pointer border-2 border-transparent hover:border-blue-500 shadow-md hover:shadow-lg transition-all">
+            <div class="text-4xl text-center mb-2">📝</div>
+            <h2 class="text-xl font-bold text-gray-800 text-center mb-1">Novo Cadastro</h2>
+            <p class="text-gray-600 text-center text-sm">Registrar nova OS</p>
         </div>
+
+        <!-- Editar/Excluir -->
         <div onclick="abrirLista()"
-            class="menu-card bg-white rounded-2xl p-8 cursor-pointer border-2 border-transparent hover:border-green-500">
-            <div class="menu-icon text-center">✏️</div>
-            <h2 class="text-2xl font-bold text-gray-800 text-center mb-2">Editar / Excluir</h2>
-            <p class="text-gray-600 text-center text-sm">Alterar ou remover registros existentes</p>
-        </div>
-        <div onclick="abrirRelatorio()"
-            class="menu-card bg-white rounded-2xl p-8 cursor-pointer border-2 border-transparent hover:border-purple-500">
-            <div class="menu-icon text-center">📊</div>
-            <h2 class="text-2xl font-bold text-gray-800 text-center mb-2">Relatórios</h2>
-            <p class="text-gray-600 text-center text-sm">Visualizar e exportar relatórios</p>
+            class="menu-card bg-white rounded-xl p-6 cursor-pointer border-2 border-transparent hover:border-green-500 shadow-md hover:shadow-lg transition-all">
+            <div class="text-4xl text-center mb-2">✏️</div>
+            <h2 class="text-xl font-bold text-gray-800 text-center mb-1">Editar / Excluir</h2>
+            <p class="text-gray-600 text-center text-sm">Alterar/remover registros</p>
         </div>
 
+        <!-- Cadastros (Submenu) -->
+        <div onclick="abrirCadastros()"
+            class="menu-card bg-white rounded-xl p-6 cursor-pointer border-2 border-transparent hover:border-purple-500 shadow-md hover:shadow-lg transition-all">
+            <div class="text-4xl text-center mb-2">🗂️</div>
+            <h2 class="text-xl font-bold text-gray-800 text-center mb-1">Cadastros</h2>
+            <p class="text-gray-600 text-center text-sm">Clientes, serviços, situações</p>
+        </div>
+
+        <!-- Relatórios (Submenu) -->
+        <div onclick="abrirRelatorios()"
+            class="menu-card bg-white rounded-xl p-6 cursor-pointer border-2 border-transparent hover:border-orange-500 shadow-md hover:shadow-lg transition-all">
+            <div class="text-4xl text-center mb-2">📊</div>
+            <h2 class="text-xl font-bold text-gray-800 text-center mb-1">Relatórios</h2>
+            <p class="text-gray-600 text-center text-sm">Consultas e análises</p>
+        </div>
+
+        <!-- Comissão -->
         <div onclick="abrirComissao()"
-            class="menu-card bg-white rounded-2xl p-8 cursor-pointer border-2 border-transparent hover:border-orange-500">
-            <div class="menu-icon text-center">💰</div>
-            <h2 class="text-2xl font-bold text-gray-800 text-center mb-2">Comissão</h2>
-            <p class="text-gray-600 text-center text-sm">Relatório de comissão por período</p>
+            class="menu-card bg-white rounded-xl p-6 cursor-pointer border-2 border-transparent hover:border-teal-500 shadow-md hover:shadow-lg transition-all">
+            <div class="text-4xl text-center mb-2">💰</div>
+            <h2 class="text-xl font-bold text-gray-800 text-center mb-1">Comissão</h2>
+            <p class="text-gray-600 text-center text-sm">Relatório por período</p>
         </div>
 
-        <div onclick="abrirNFRecibo()"
-            class="menu-card bg-white rounded-2xl p-8 cursor-pointer border-2 border-transparent hover:border-teal-500">
-            <div class="menu-icon text-center">📊</div>
-            <h2 class="text-2xl font-bold text-gray-800 text-center mb-2">Totais</h2>
-            <p class="text-gray-600 text-center text-sm">Faturamento por instituição</p>
-        </div>
-
+        <!-- Sair -->
         <div onclick="confirmarSaida()"
-            class="menu-card bg-white rounded-2xl p-8 cursor-pointer border-2 border-transparent hover:border-red-500">
-            <div class="menu-icon text-center">🚪</div>
-            <h2 class="text-2xl font-bold text-gray-800 text-center mb-2">Sair do Sistema</h2>
-            <p class="text-gray-600 text-center text-sm">Encerrar sessão com segurança</p>
+            class="menu-card bg-white rounded-xl p-6 cursor-pointer border-2 border-transparent hover:border-red-500 shadow-md hover:shadow-lg transition-all">
+            <div class="text-4xl text-center mb-2">🚪</div>
+            <h2 class="text-xl font-bold text-gray-800 text-center mb-1">Sair</h2>
+            <p class="text-gray-600 text-center text-sm">Encerrar sessão</p>
         </div>
     </div>
 
-    <div class="mt-12 text-gray-500 text-sm text-center">
+    <div class="mt-8 text-gray-500 text-sm text-center">
         <p>© 2026 KTSistemas - Todos os direitos reservados</p>
         <p class="mt-1">Desenvolvido por Sidnei Carraco</p>
-        <p class="mt-3">
+        <p class="mt-2">
             <span id="usuario-logado" class="text-blue-600 font-bold"></span>
-            <a href="/alterar-senha" class="ml-4 text-green-600 hover:text-green-800 font-bold">🔐 Alterar Senha</a>
-            <a href="/logout" class="ml-4 text-red-600 hover:text-red-800 font-bold"> Sair</a>
+            <a href="/alterar-senha" class="ml-3 text-green-600 hover:text-green-800 font-bold">🔐 Alterar Senha</a>
         </p>
     </div>
 </div>
@@ -68,19 +76,6 @@
     <div class="max-w-7xl mx-auto p-4 md:p-6">
         <div id="container-formulario"></div>
     </div>
-
-
-    <!-- Card Cadastro de Clientes -->
-    <a href="{{ url_for('cadastro_clientes') }}"
-        class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-        <div class="text-center">
-            <div class="text-6xl mb-4">🏢</div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Cadastro de Clientes</h3>
-            <p class="text-gray-600 text-sm">Cadastrar instituições e assistências</p>
-        </div>
-    </a>
-
-
 </div>
 
 <!-- Modais -->
@@ -104,19 +99,18 @@
         carregarFormulario('edicao');
     }
 
-    function abrirRelatorio() {
-        document.getElementById('menu-principal').classList.add('hidden');
-        document.getElementById('tela-formulario').classList.remove('hidden');
-        carregarFormulario('relatorio');
+    function abrirCadastros() {
+        // Redirecionar para página de cadastros
+        window.location.href = '/cadastros';
+    }
+
+    function abrirRelatorios() {
+        // Redirecionar para página de relatórios
+        window.location.href = '/relatorios';
     }
 
     function abrirComissao() {
-        // Redirecionar direto para a página de comissão
         window.location.href = '/comissao';
-    }
-
-    function abrirNFRecibo() {
-        window.location.href = '/nf-recibo';
     }
 
     function voltarAoMenu() {
@@ -137,15 +131,13 @@
     }
 
     function confirmarSaidaDoSistema() {
-        window.close();
-        window.location.href = 'about:blank';
+        window.location.href = '/logout';
     }
 
     function carregarFormulario(tipo) {
         console.log('🔍 Carregando formulário:', tipo);
         console.log('🔍 Container existe?', !!document.getElementById('container-formulario'));
 
-        // Para comissão, carregar diretamente
         if (tipo === 'comissao') {
             fetch('/comissao')
                 .then(response => response.text())
@@ -158,7 +150,7 @@
                             setTimeout(() => initComissao(), 100);
                         }
                     } else {
-                        console.error('❌ Container não encontrado!');
+                        console.error(' Container não encontrado!');
                     }
                 })
                 .catch(err => {
@@ -166,7 +158,6 @@
                     alert('Erro ao carregar o formulário');
                 });
         } else {
-            // Para outros formulários
             fetch(`/formulario/${tipo}`)
                 .then(response => {
                     console.log('📡 Response status:', response.status);
@@ -186,7 +177,15 @@
                         } else if (tipo === 'edicao') {
                             if (typeof initEdicao === 'function') initEdicao();
                         } else if (tipo === 'relatorio') {
-                            if (typeof initRelatorio === 'function') initRelatorio();
+                            const script = document.createElement('script');
+                            script.src = '/static/js/relatorio.js';
+                            script.onload = function () {
+                                console.log('✅ Script relatorio.js carregado');
+                                if (typeof initRelatorio === 'function') {
+                                    setTimeout(() => initRelatorio(), 100);
+                                }
+                            };
+                            document.head.appendChild(script);
                         }
                     } else {
                         console.error('❌ Container não encontrado!');
@@ -198,20 +197,5 @@
                 });
         }
     }
-
-
-    // Mostrar usuário logado
-    document.addEventListener('DOMContentLoaded', async () => {
-        try {
-            const response = await fetch('/api/usuario-atual');
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('usuario-logado').textContent =
-                    `Logado como: ${result.usuario.nome} (${result.usuario.tipo})`;
-            }
-        } catch (e) {
-            console.error('Erro ao carregar usuário:', e);
-        }
-    });
 </script>
 {% endblock %}

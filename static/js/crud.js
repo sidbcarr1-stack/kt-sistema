@@ -96,7 +96,7 @@ function limpar() {
     limparFormulario();
 }
 
-function editarRegistro(id) {
+/* function editarRegistro(id) {
     const formView = document.getElementById('view-form');
     const listView = document.getElementById('view-list');
     const btnToggle = document.getElementById('btn-toggle-view');
@@ -139,6 +139,55 @@ function editarRegistro(id) {
     }
 
     // Carrega os dados
+    carregarRegistro(id);
+} */
+
+
+async function editarRegistro(id) {
+    // 💾 SALVAR ESTADO DA LISTA ANTES DE EDITAR
+    if (typeof salvarEstadoLista === 'function') {
+        salvarEstadoLista();
+    }
+
+    //  DEFINIR ORIGEM COMO 'lista'
+    if (typeof definirOrigem === 'function') {
+        definirOrigem('lista');
+    }
+
+    const formView = document.getElementById('view-form');
+    const listView = document.getElementById('view-list');
+    const btnToggle = document.getElementById('btn-toggle-view');
+
+    if (!formView) {
+        if (listView) listView.classList.add('hidden');
+        carregarFormulario('cadastro');
+
+        let tentativas = 0;
+        const intervalo = setInterval(() => {
+            const formCarregado = document.getElementById('view-form');
+            if (formCarregado && document.getElementById('btn-salvar')) {
+                clearInterval(intervalo);
+                setTimeout(() => {
+                    carregarRegistro(id);
+                }, 200);
+            }
+
+            tentativas++;
+            if (tentativas > 50) {
+                clearInterval(intervalo);
+                alert('Erro: O formulário demorou muito para carregar. Recarregue a página.');
+            }
+        }, 100);
+
+        return;
+    }
+
+    if (listView && !listView.classList.contains('hidden')) {
+        formView.classList.remove('hidden');
+        listView.classList.add('hidden');
+        if (btnToggle) btnToggle.textContent = '📋 Ver Lista';
+    }
+
     carregarRegistro(id);
 }
 

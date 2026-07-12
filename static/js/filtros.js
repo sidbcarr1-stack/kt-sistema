@@ -1,3 +1,75 @@
+// ==================== NAVEGAÇÃO INTELIGENTE ====================
+let paginaAnterior = null;
+let origemNavegacao = 'menu';
+let estadoLista = {
+    filtros: {},
+    pagina: 1
+};
+
+function definirOrigem(origem) {
+    origemNavegacao = origem;
+    console.log('📍 Origem definida:', origem);
+}
+
+function voltarInteligente() {
+    console.log('🔙 Voltando para:', origemNavegacao);
+
+    switch (origemNavegacao) {
+        case 'lista':
+            mostrarListaComFiltros();
+            break;
+        case 'cadastros':
+            window.location.href = '/cadastros';
+            break;
+        case 'relatorios':
+            window.location.href = '/relatorios';
+            break;
+        default:
+            window.location.href = '/';
+    }
+}
+
+function mostrarListaComFiltros() {
+    const viewForm = document.getElementById('view-form');
+    const listView = document.getElementById('view-list');
+
+    if (viewForm) viewForm.classList.add('hidden');
+    if (listView) {
+        listView.classList.remove('hidden');
+        carregarLista(estadoLista.pagina);
+    }
+
+    const btnToggle = document.getElementById('btn-toggle-view');
+    if (btnToggle) btnToggle.textContent = '📋 Ver Lista';
+}
+
+function salvarEstadoLista() {
+    estadoLista = {
+        filtros: {
+            campo1: document.getElementById('filtro_campo1')?.value || '',
+            valor1: document.getElementById('filtro_valor1')?.value || '',
+            data1Inicio: document.getElementById('filtro_data1_inicio')?.value || '',
+            data1Fim: document.getElementById('filtro_data1_fim')?.value || '',
+            campo2: document.getElementById('filtro_campo2')?.value || '',
+            valor2: document.getElementById('filtro_valor2')?.value || '',
+            data2Inicio: document.getElementById('filtro_data2_inicio')?.value || '',
+            data2Fim: document.getElementById('filtro_data2_fim')?.value || ''
+        },
+        pagina: listaAtual.pagina || 1
+    };
+    console.log('💾 Estado da lista salvo:', estadoLista);
+}
+
+// ==================== RESTANTE DO CÓDIGO EXISTENTE... ====================
+
+
+
+
+
+
+
+
+
 // ==================== CARREGAR VALORES ÚNICOS ====================
 async function carregarValoresUnicos(campo, selectId) {
     try {
@@ -103,28 +175,75 @@ function buildForm() {
     mostrarAba(1);
 }
 
-// ==================== CARREGAR PARÂMETROS ====================
+// ==================== CARREGAR PARÂMETROS DAS NOVAS ABAS ====================
 async function loadParams() {
     try {
-        const [rP, rP1, rP2] = await Promise.all([
-            fetch('/api/parametros/Parametros').then(r => r.json()),
-            fetch('/api/parametros/Parametros-1').then(r => r.json()),
-            fetch('/api/parametros/Parametros-2').then(r => r.json()),
+        console.log('🔄 Carregando parâmetros das NOVAS abas...');
+
+        // Buscar das NOVAS abas
+        const [rClientes, rSituacoes] = await Promise.all([
+            fetch('/api/parametros/cadClientes').then(r => r.json()),
+            fetch('/api/parametros/Relacionamento_Ordenado').then(r => r.json()),
         ]);
-        if (rP.success) {
-            paramRows = rP.data.slice(1);
-            fillSelect('in_B', uniqueCol(paramRows, 5));
-            fillSelect('in_D', uniqueCol(paramRows, 16));
-            fillSelect('in_H', uniqueCol(paramRows, 8));
-            fillSelect('in_M', uniqueCol(paramRows, 3));
-            const motoristas = uniqueCol(paramRows, 0);
-            fillSelect('in_N', motoristas);
-            fillSelect('in_O', motoristas);
-            fillSelect('in_R', uniqueCol(paramRows, 24));
+
+        // Popular Instituição (select B) - da aba cadClientes
+        if (rClientes.success) {
+            const dadosClientes = rClientes.data.slice(1); // Pular cabeçalho
+
+            // Extrair instituições únicas da coluna B (índice 1)
+            const instituicoes = [...new Set(
+                dadosClientes
+                    .filter(row => row && row[1])
+                    .map(row => row[1].trim())
+            )].sort();
+
+            fillSelect('in_B', instituicoes);
+            console.log('✅ Instituições carregadas:', instituicoes.length);
+
+            // Armazenar dados completos para filtragem
+            window.cadClientesData = dadosClientes;
         }
-        if (rP1.success) situRows = rP1.data.slice(1);
-        if (rP2.success) assistRows = rP2.data.slice(1);
-    } catch (err) { console.error('Erro ao carregar parâmetros:', err); }
+
+        // Popular Situações (será filtrado dinamicamente)
+        if (rSituacoes.success) {
+            const dadosRel = rSituacoes.data.slice(1); // Pular cabeçalho
+
+            // Extrair situações únicas da coluna D (índice 3)
+            const todasSituacoes = [...new Set(
+                dadosRel
+                    .filter(row => row && row[3])
+                    .map(row => row[3].trim())
+            )].sort();
+
+            // Armazenar para filtragem dinâmica
+            window.relacionamentoData = dadosRel;
+            window.todasSituacoes = todasSituacoes;
+
+            console.log('✅ Relacionamentos carregados:', dadosRel.length);
+            console.log('✅ Situações disponíveis:', todasSituacoes.length);
+        }
+
+        // Carregar outros parâmetros das abas antigas (se ainda necessário)
+        try {
+            const rP = await fetch('/api/parametros/Parametros').then(r => r.json());
+            if (rP.success) {
+                paramRows = rP.data.slice(1);
+                fillSelect('in_D', uniqueCol(paramRows, 16));
+                fillSelect('in_H', uniqueCol(paramRows, 8));
+                fillSelect('in_M', uniqueCol(paramRows, 3));
+                const motoristas = uniqueCol(paramRows, 0);
+                fillSelect('in_N', motoristas);
+                fillSelect('in_O', motoristas);
+                fillSelect('in_R', uniqueCol(paramRows, 24));
+                console.log('✅ Outros parâmetros carregados');
+            }
+        } catch (e) {
+            console.warn('⚠️ Parametros não carregados (pode ser normal):', e);
+        }
+
+    } catch (err) {
+        console.error('❌ Erro ao carregar parâmetros:', err);
+    }
 }
 
 function applyEvents() {

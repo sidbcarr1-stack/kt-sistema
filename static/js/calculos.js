@@ -61,7 +61,16 @@ function calcGuincho() {
 
 function onCurrencyInput(el) {
     // Permite digitar tanto "." quanto ","
-    el.value = el.value.replace(/[^\d,.]/g, '');
+    // el.value = el.value.replace(/[^\d,.]/g, '');
+
+    // ✅ Permite valores negativos
+    let valor = el.value;
+    const temMenos = valor.startsWith('-');
+    valor = valor.replace(/[^\d,.]/g, '');
+    if (temMenos && !valor.startsWith('-')) {
+        valor = '-' + valor;
+    }
+    el.value = valor;
 }
 
 function onCurrencyBlur(el) {
@@ -121,14 +130,46 @@ function applyPlateMask(el) {
 
 function onInstituicaoChange() {
     const inst = (document.getElementById('in_B').value || '').trim().toUpperCase();
-    const selC = document.getElementById('in_C'), selF = document.getElementById('in_F');
+    const selC = document.getElementById('in_C');
+    const selF = document.getElementById('in_F');
+
+    console.log('🔍 Instituição alterada:', inst);
+
     if (!inst) {
-        selC.innerHTML = '<option value="">Selecione a Instituição...</option>'; selC.disabled = true;
-        selF.innerHTML = '<option value="">Selecione a Instituição...</option>'; selF.disabled = true;
+        fillSelect('in_C', [], 'Selecione a Instituição...');
+        fillSelect('in_F', [], 'Selecione a Instituição...');
+        if (selC) selC.disabled = true;
+        if (selF) selF.disabled = true;
         return;
     }
-    const assists = [...new Set(assistRows.filter(r => (r[0] || '').trim().toUpperCase() === inst && (r[1] || '').trim()).map(r => r[1].trim()))].sort();
-    fillSelect('in_C', assists); selC.disabled = false;
-    const sits = [...new Set(situRows.filter(r => (r[0] || '').trim().toUpperCase() === inst && (r[1] || '').trim()).map(r => r[1].trim()))].sort();
-    fillSelect('in_F', sits); selF.disabled = false;
+
+    // ========== FILTRAR ASSISTÊNCIAS ==========
+    if (window.cadClientesData) {
+        const assists = [...new Set(
+            window.cadClientesData
+                .filter(row => row && row[1] && row[2])
+                .filter(row => (row[1] || '').trim().toUpperCase() === inst)
+                .map(row => row[2].trim())
+        )].sort();
+
+        fillSelect('in_C', assists, 'Selecione...');
+        if (selC) selC.disabled = assists.length === 0;
+
+        console.log('✅ Assistências encontradas:', assists.length, assists);
+    }
+
+    // ========== FILTRAR SITUAÇÕES ==========
+    if (window.relacionamentoData) {
+        const sits = [...new Set(
+            window.relacionamentoData
+                .filter(row => row && row[2] && row[3])
+                .filter(row => (row[2] || '').trim().toUpperCase() === inst)
+                .map(row => row[3].trim())
+        )].sort();
+
+        fillSelect('in_F', sits, 'Selecione...');
+        if (selF) selF.disabled = sits.length === 0;
+
+        console.log('✅ Situações encontradas:', sits.length, sits);
+    }
 }

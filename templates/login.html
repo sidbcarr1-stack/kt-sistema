@@ -56,8 +56,17 @@
             const senha = document.getElementById('senha').value;
             const mensagemErro = document.getElementById('mensagem-erro');
 
+            // Capturar o parâmetro ?next= da URL atual
+            const urlParams = new URLSearchParams(window.location.search);
+            const nextUrl = urlParams.get('next') || '';
+
             try {
-                const response = await fetch('/login', {
+                // Montar a URL do fetch com o parâmetro next (se existir)
+                const fetchUrl = nextUrl
+                    ? `/login?next=${encodeURIComponent(nextUrl)}`
+                    : '/login';
+
+                const response = await fetch(fetchUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: `login=${encodeURIComponent(login)}&senha=${encodeURIComponent(senha)}`

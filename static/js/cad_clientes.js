@@ -2,6 +2,23 @@
 let clienteParaExcluir = null;
 let modoEdicao = false;
 
+// ==================== CARREGAR PRÓXIMO ID ====================
+async function carregarProximoId() {
+    try {
+        const response = await fetch('/api/clientes/proximo-id');
+        const result = await response.json();
+
+        if (result.success) {
+            document.getElementById('id_cliente_display').value = result.proximo_id;
+        } else {
+            document.getElementById('id_cliente_display').value = 'Erro ao carregar ID';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar próximo ID:', error);
+        document.getElementById('id_cliente_display').value = 'Erro';
+    }
+}
+
 // ==================== CONVERSÃO AUTOMÁTICA PARA MAIÚSCULAS ====================
 document.addEventListener('DOMContentLoaded', function () {
     // Campos que devem ser convertidos para maiúsculas
@@ -14,6 +31,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.value = this.value.toUpperCase();
             });
         }
+
+        // Carregar próximo ID ao abrir o formulário
+        carregarProximoId();
     });
 
     // Máscara para telefone
@@ -145,21 +165,35 @@ async function carregarLista() {
                 return;
             }
 
-            tbody.innerHTML = result.dados.map(cliente => `
-                <tr class="hover:bg-gray-50">
-                    <td class="border border-gray-300 px-3 py-2">${cliente.id}</td>
-                    <td class="border border-gray-300 px-3 py-2">${cliente.instituicao}</td>
-                    <td class="border border-gray-300 px-3 py-2">${cliente.assistencia}</td>
-                    <td class="border border-gray-300 px-3 py-2">${cliente.nome_fantasia}</td>
-                    <td class="border border-gray-300 px-3 py-2">${cliente.cnpj_cpf}</td>
-                    <td class="border border-gray-300 px-3 py-2">${cliente.email}</td>
-                    <td class="border border-gray-300 px-3 py-2">${cliente.telefone}</td>
-                    <td class="border border-gray-300 px-3 py-2 text-center">
-                        <button onclick="editarCliente('${cliente.id}')" class="text-blue-600 hover:text-blue-800 mr-2" title="Editar">✏️</button>
-                        <button onclick="abrirModalExclusao('${cliente.id}')" class="text-red-600 hover:text-red-800" title="Excluir">🗑️</button>
-                    </td>
-                </tr>
-            `).join('');
+            // Debug: mostrar primeiro cliente
+            console.log('[DEBUG] Primeiro cliente:', result.dados[0]);
+            console.log('[DEBUG] ID do primeiro cliente:', result.dados[0].id);
+            console.log('[DEBUG] Tipo do ID:', typeof result.dados[0].id);
+
+            tbody.innerHTML = result.dados.map(cliente => {
+                // Garantir que o ID seja válido
+                const idCliente = (cliente.id !== null && cliente.id !== undefined && cliente.id !== '')
+                    ? String(cliente.id)
+                    : '';
+
+                console.log('[DEBUG] Processando cliente ID:', idCliente);
+
+                return `
+                    <tr class="hover:bg-gray-50" data-id="${idCliente}">
+                        <td class="border border-gray-300 px-3 py-2">${idCliente}</td>
+                        <td class="border border-gray-300 px-3 py-2">${cliente.instituicao}</td>
+                        <td class="border border-gray-300 px-3 py-2">${cliente.assistencia}</td>
+                        <td class="border border-gray-300 px-3 py-2">${cliente.nome_fantasia}</td>
+                        <td class="border border-gray-300 px-3 py-2">${cliente.cnpj_cpf}</td>
+                        <td class="border border-gray-300 px-3 py-2">${cliente.email}</td>
+                        <td class="border border-gray-300 px-3 py-2">${cliente.telefone}</td>
+                        <td class="border border-gray-300 px-3 py-2 text-center">
+                            <button onclick="editarCliente('${idCliente}')" class="text-blue-600 hover:text-blue-800 mr-2" title="Editar">✏️</button>
+                            <button onclick="abrirModalExclusao('${idCliente}')" class="text-red-600 hover:text-red-800" title="Excluir">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
     } catch (error) {
         alert('Erro ao carregar lista: ' + error.message);
@@ -176,6 +210,7 @@ async function editarCliente(id) {
             const cliente = result.dados.find(c => c.id == id);
 
             if (cliente) {
+                document.getElementById('id_cliente_display').value = cliente.id;
                 document.getElementById('cliente-id').value = cliente.id;
                 document.getElementById('instituicao').value = cliente.instituicao;
                 document.getElementById('assistencia').value = cliente.assistencia;
@@ -208,10 +243,29 @@ async function editarCliente(id) {
 
 // ==================== EXCLUIR CLIENTE ====================
 function abrirModalExclusao(id) {
-    clienteParaExcluir = id;
-    document.getElementById('delete-id-display').textContent = id;
-    document.getElementById('modal-delete').classList.remove('hidden');
-    document.getElementById('modal-delete').classList.add('flex');
+    console.log('[DEBUG] abrirModalExclusao chamado com ID:', id);
+
+    // Validar ID
+    if (!id || id === 'null' || id === 'undefined' || id === '') {
+        alert('Erro: ID do cliente não foi informado!');
+        return;
+    }
+
+    // Armazenar ID no modal (atributo data)
+    const modal = document.getElementById('modal-delete');
+    modal.setAttribute('data-cliente-id', String(id));
+
+    // Atualizar texto de confirmação
+    const display = document.getElementById('delete-id-display');
+    if (display) {
+        display.textContent = id;
+    }
+
+    // Mostrar modal
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    console.log('[DEBUG] Modal aberto para ID:', id);
 }
 
 function fecharModal() {
@@ -221,16 +275,48 @@ function fecharModal() {
 }
 
 async function confirmarExclusao() {
-    if (!clienteParaExcluir) return;
+    // Ler ID do atributo data do modal
+    const modal = document.getElementById('modal-delete');
+    const clienteId = modal.getAttribute('data-cliente-id');
 
-    fecharModal();
+    console.log('\n[DEBUG] ========== INÍCIO EXCLUSÃO ==========');
+    console.log('[DEBUG] ID lido do modal:', clienteId);
+
+    if (!clienteId || clienteId === 'null' || clienteId === '') {
+        alert('Erro: ID do cliente não está definido!');
+        return;
+    }
+
+    // Fechar modal
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 
     try {
-        const response = await fetch(`/api/clientes/${clienteParaExcluir}`, {
-            method: 'DELETE'
+        const url = '/api/clientes/' + clienteId;
+        console.log('[DEBUG] URL:', url);
+
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
+        console.log('[DEBUG] Status:', response.status);
+        console.log('[DEBUG] Content-Type:', response.headers.get('content-type'));
+
+        const contentType = response.headers.get('content-type');
+
+        if (!contentType || !contentType.includes('application/json')) {
+            const textResponse = await response.text();
+            console.error('[DEBUG] Servidor retornou HTML:');
+            console.error(textResponse.substring(0, 500));
+            throw new Error(`Servidor retornou erro ${response.status}. Verifique o terminal.`);
+        }
+
         const result = await response.json();
+        console.log('[DEBUG] Resultado:', result);
+        console.log('[DEBUG] ========== FIM EXCLUSÃO ==========\n');
 
         if (result.success) {
             alert('Cliente excluído com sucesso!');
@@ -239,7 +325,8 @@ async function confirmarExclusao() {
             alert('Erro ao excluir: ' + (result.error || 'Erro desconhecido'));
         }
     } catch (error) {
-        alert('Erro de conexão: ' + error.message);
+        console.error('[DEBUG] Erro:', error);
+        alert('Erro: ' + error.message);
     }
 }
 
@@ -248,6 +335,9 @@ function limparFormulario() {
     document.getElementById('form-cliente').reset();
     document.getElementById('cliente-id').value = '';
     modoEdicao = false;
+
+    // Recarregar próximo ID após limpar
+    carregarProximoId();
 }
 
 // ==================== TOGGLE VIEW ====================
