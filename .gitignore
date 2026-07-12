@@ -59,3 +59,6 @@ credentials.json
 !appsettings.json
 # Credenciais - NUNCA commitar
 credentials.json
+
+# Credenciais
+credentials.json
