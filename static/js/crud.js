@@ -32,6 +32,11 @@ async function carregarRegistro(id) {
         const result = await r.json();
         if (!result.success || !result.data) { alert('Registro não encontrado'); return; }
         const linha = result.data;
+
+        // ✅ ADICIONE ESTA LINHA AQUI:
+        document.getElementById('linha_atual').value = id;
+        console.log('📝 linha_atual definido para:', id);
+
         CAMPOS.forEach(c => {
             const el = document.getElementById('in_' + c.id);
             if (!el) return;
@@ -85,6 +90,10 @@ function limparFormulario() {
     auOverridden = false;
     modoEdicao = false;
     idEdicao = null;
+
+    // ✅ ADICIONE ESTA LINHA:
+    document.getElementById('linha_atual').value = '';
+
     document.getElementById('edit-indicator').classList.add('hidden');
     document.getElementById('btn-cancel-edit').classList.add('hidden');
     document.getElementById('btn-salvar').textContent = '💾 Salvar OS';

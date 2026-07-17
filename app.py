@@ -178,6 +178,110 @@ def excluir(id_registro):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+# ==================== ROTAS DE COMENTÁRIOS POR CAMPO ====================
+
+def _obter_ou_criar_aba_comentarios():
+    """Retorna a aba 'Comentarios', criando-a automaticamente se não existir."""
+    try:
+        return ss.worksheet('Comentarios')
+    except gspread.exceptions.WorksheetNotFound:
+        print("[Comentarios] Aba 'Comentarios' não encontrada. Criando automaticamente...")
+        aba = ss.add_worksheet(title='Comentarios', rows=5000, cols=6)
+        # Criar cabeçalho
+        aba.update('A1:E1', [['id_registro', 'coluna', 'comentario', 'usuario', 'data_hora']])
+        print("[Comentarios] Aba 'Comentarios' criada com sucesso!")
+        return aba
+
+@app.route('/api/comentarios/<id_registro>', methods=['GET'])
+@requer_auth
+def listar_comentarios(id_registro):
+    """GET: Retorna todos os comentários de um registro específico."""
+    try:
+        aba = _obter_ou_criar_aba_comentarios()
+        dados = aba.get('A2:E10000')
+
+        comentarios = {}
+        for linha in dados:
+            if not linha or len(linha) < 2:
+                continue
+            if str(linha[0]).strip() == str(id_registro):
+                coluna = str(linha[1]).strip()
+                comentarios[coluna] = {
+                    'comentario': linha[2] if len(linha) > 2 else '',
+                    'usuario':    linha[3] if len(linha) > 3 else '',
+                    'data_hora':  linha[4] if len(linha) > 4 else ''
+                }
+
+        return jsonify({"success": True, "comentarios": comentarios})
+    except Exception as e:
+        print(f"[Comentarios] Erro ao listar: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/comentarios/<id_registro>/<coluna>', methods=['POST'])
+@requer_auth
+def salvar_comentario(id_registro, coluna):
+    """POST: Cria ou atualiza o comentário de um campo específico."""
+    try:
+        dados = request.json
+        texto = dados.get('comentario', '').strip()
+        usuario = session.get('nome') or session.get('username') or session.get('email') or 'Usuário'
+        data_hora = datetime.now().strftime('%d/%m/%Y %H:%M')
+
+        aba = _obter_ou_criar_aba_comentarios()
+        todas_as_linhas = aba.get('A2:E10000')
+
+        linha_encontrada = None
+        for idx, linha in enumerate(todas_as_linhas, start=2):
+            if linha and len(linha) >= 2:
+                if str(linha[0]).strip() == str(id_registro) and str(linha[1]).strip() == str(coluna):
+                    linha_encontrada = idx
+                    break
+
+        nova_linha_dados = [str(id_registro), str(coluna), texto, usuario, data_hora]
+
+        if linha_encontrada:
+            # Atualizar linha existente
+            aba.update(f'A{linha_encontrada}:E{linha_encontrada}', [nova_linha_dados])
+        else:
+            # Inserir nova linha
+            aba.append_row(nova_linha_dados, value_input_option='USER_ENTERED')
+
+        return jsonify({
+            "success": True,
+            "message": "Comentário salvo com sucesso",
+            "usuario": usuario,
+            "data_hora": data_hora
+        })
+    except Exception as e:
+        print(f"[Comentarios] Erro ao salvar: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/comentarios/<id_registro>/<coluna>', methods=['DELETE'])
+@requer_auth
+def excluir_comentario(id_registro, coluna):
+    """DELETE: Remove o comentário de um campo específico."""
+    try:
+        aba = _obter_ou_criar_aba_comentarios()
+        todas_as_linhas = aba.get('A2:E10000')
+
+        linha_encontrada = None
+        for idx, linha in enumerate(todas_as_linhas, start=2):
+            if linha and len(linha) >= 2:
+                if str(linha[0]).strip() == str(id_registro) and str(linha[1]).strip() == str(coluna):
+                    linha_encontrada = idx
+                    break
+
+        if linha_encontrada:
+            aba.delete_rows(linha_encontrada)
+            return jsonify({"success": True, "message": "Comentário excluído com sucesso"})
+        else:
+            return jsonify({"success": False, "error": "Comentário não encontrado"}), 404
+    except Exception as e:
+        print(f"[Comentarios] Erro ao excluir: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 # ==================== ROTAS DE PARÂMETROS ====================
 
 @app.route('/api/parametros/<nome_aba>', methods=['GET'])
@@ -864,9 +968,9 @@ def api_comissao():
                 "error": "Motorista, data inicial e data final são obrigatórios"
             }), 400
         
-        # Buscar dados da planilha
+        # ✅ CORREÇÃO: Range expandido para incluir coluna AV (e além se necessário)
         aba = sheets_backend._obter_aba_por_nome('BD_Geral')
-        dados = aba.get('B5:AU20000')
+        dados = aba.get('B5:BS20000')  # De B até BS (inclui AV e todas as colunas até BS)
         
         # Converter datas para comparação
         def parse_data_br(data_str):
@@ -895,9 +999,9 @@ def api_comissao():
             if not linha or len(linha) < 45:
                 continue
             
-            # Colunas (índice 0-based):
+            # Colunas (índice 0-based a partir de B):
             # B=0 (Empresa), K=9 (Data), J=8 (Protocolo), P=14 (Placa)
-            # AV=46 (Observação), AL=36 (Pedágio), AU=45 (Valor Total), N=12 (Motorista)
+            # N=12 (Motorista), AV=46 (Observação), AL=36 (Pedágio), AU=45 (Valor Total)
             
             motorista_linha = str(linha[12]).strip() if len(linha) > 12 else ''
             data_linha_str = str(linha[9]).strip() if len(linha) > 9 else ''
@@ -918,6 +1022,8 @@ def api_comissao():
             empresa = str(linha[0]).strip() if len(linha) > 0 else ''
             protocolo = str(linha[8]).strip() if len(linha) > 8 else ''
             placa = str(linha[14]).strip() if len(linha) > 14 else ''
+            
+            # ✅ CORREÇÃO: Buscar observação da coluna AV (índice 46)
             observacao = str(linha[46]).strip() if len(linha) > 46 else ''
             
             # Valores monetários
@@ -943,7 +1049,7 @@ def api_comissao():
                 'data': data_linha_str,
                 'protocolo': protocolo,
                 'placa': placa,
-                'observacao': observacao,
+                'observacao': observacao,  # ✅ Agora vem da coluna AV
                 'pedagio': pedagio,
                 'valor_total': valor_total,
                 'valor_sem_pedagio': valor_sem_pedagio
@@ -967,20 +1073,28 @@ def api_motoristas():
         aba = sheets_backend._obter_aba_por_nome('Parametros')
         dados = aba.get('A2:A100')
         
+        # DEBUG: Verificar o que está vindo da planilha
+        print(f"🔍 DEBUG - Dados brutos da aba Parametros: {dados}")
+        
         motoristas = []
         for linha in dados:
             if linha and len(linha) > 0:
                 valor = str(linha[0]).strip()
-                if valor:
+                # Ignora células vazias e o possível cabeçalho "Motorista"
+                if valor and valor.lower() != 'motorista':
                     motoristas.append(valor)
         
-        motoristas.sort()
+        # Ordenação alfabética segura (case-insensitive)
+        motoristas.sort(key=lambda x: x.lower())
+        
+        print(f"✅ DEBUG - Motoristas processados e ordenados: {motoristas}")
         
         return jsonify({
             "success": True,
             "motoristas": motoristas
         })
     except Exception as e:
+        print(f"❌ ERRO em api_motoristas: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -1802,6 +1916,85 @@ def relatorios_menu():
     """Página de Relatórios (submenu)"""
     return render_template('relatorios.html')
 
+
+
+@app.route('/api/atualizar_comentario_celula', methods=['POST'])
+@login_required
+def atualizar_comentario_celula():
+    """Adiciona comentário (nota) em uma célula do Google Sheets"""
+    try:
+        data = request.json
+        row = int(data.get('row'))
+        col = str(data.get('col')).upper()
+        comentario = str(data.get('comentario', '')).strip()
+        
+        print(f"📝 Recebido: row={row}, col={col}, comentario='{comentario}'")
+        
+        # Obtém a aba BD_Geral
+        ws = sheets_backend._obter_aba_por_nome('BD_Geral')
+        cell = f"{col}{row}"
+        
+        print(f"📍 Célula alvo: {cell}")
+        
+        if comentario:
+            # Adiciona o comentário usando update_note
+            ws.update_note(cell, comentario)
+            print(f"✅ Comentário adicionado em {cell}")
+            
+            # Aplica formatação: fundo amarelo suave + texto cinza escuro
+            try:
+                ws.format(cell, {
+                    "backgroundColor": {"red": 1.0, "green": 0.95, "blue": 0.7},
+                    "textFormat": {"foregroundColor": {"red": 0.2, "green": 0.2, "blue": 0.2}}
+                })
+                print(f"🎨 Formatação aplicada em {cell}")
+            except Exception as e:
+                print(f"⚠️ Erro ao formatar {cell}: {e}")
+        else:
+            # Remove o comentário
+            ws.update_note(cell, "")
+            print(f"🗑️ Comentário removido de {cell}")
+            
+            # Reseta formatação
+            try:
+                ws.format(cell, {
+                    "backgroundColor": {"red": 1.0, "green": 1.0, "blue": 1.0},
+                    "textFormat": {"foregroundColor": {"red": 0.0, "green": 0.0, "blue": 0.0}}
+                })
+                print(f" Formatação resetada em {cell}")
+            except Exception as e:
+                print(f"️ Erro ao resetar formatação: {e}")
+        
+        return jsonify({"success": True, "message": f"Comentário atualizado em {cell}"})
+        
+    except Exception as e:
+        print(f"❌ ERRO em atualizar_comentario_celula: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/obter_comentario_celula', methods=['GET'])
+@login_required
+def obter_comentario_celula():
+    """Recupera comentário existente de uma célula"""
+    try:
+        row = int(request.args.get('row'))
+        col = str(request.args.get('col')).upper()
+        
+        ws = sheets_backend._obter_aba_por_nome('BD_Geral')
+        cell = f"{col}{row}"
+        
+        # Obtém a nota da célula
+        comentario = ws.get_note(cell) or ""
+        
+        print(f"📖 Comentário em {cell}: '{comentario}'")
+        
+        return jsonify({"success": True, "comentario": comentario})
+        
+    except Exception as e:
+        print(f"❌ ERRO em obter_comentario_celula: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
     # ==================== INICIAR SERVIDOR ====================
 

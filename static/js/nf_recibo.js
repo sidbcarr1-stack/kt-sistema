@@ -152,7 +152,7 @@ function exportarPDF() {
 
     const elemento = document.createElement('div');
     elemento.innerHTML = `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <div style="font-family: Arial, sans-serif; padding: 10px;">
             <style>
                 table { 
                     border-collapse: collapse; 
@@ -165,8 +165,9 @@ function exportarPDF() {
                 }
                 td, th { 
                     border: 1px solid #ddd; 
-                    padding: 8px;
+                    padding: 6px;
                     text-align: center;
+                    font-size: 10px;
                 }
                 thead { 
                     display: table-header-group; 
@@ -178,44 +179,40 @@ function exportarPDF() {
                     page-break-inside: avoid; 
                 }
             </style>
-            <h1 style="text-align: center; color: #1e3a8a; margin-bottom: 10px;">Relatório de Quantidade de Serviços e Totais por Instituição</h1>
-            <div style="margin-bottom: 20px; padding: 10px; background-color: #f3f4f6; border-radius: 6px;">
-                <p><strong>Instituição:</strong> ${instituicao}</p>
-                <p><strong>Período:</strong> ${dataInicio} a ${dataFinal}</p>
-                <p style="font-size: 16px; color: #1e3a8a;"><strong>Total de Serviços: ${totalQtde} | Total Geral: ${totalValor}</strong></p>
+            <h1 style="text-align: center; color: #1e3a8a; margin: 0 0 10px 0; font-size: 16px;">Relatório de Quantidade de Serviços e Totais por Instituição</h1>
+            <div style="margin-bottom: 15px; padding: 8px; background-color: #f3f4f6; border-radius: 4px;">
+                <p style="margin: 2px 0;"><strong>Instituição:</strong> ${instituicao}</p>
+                <p style="margin: 2px 0;"><strong>Período:</strong> ${dataInicio} a ${dataFinal}</p>
+                <p style="margin: 2px 0; font-size: 14px; color: #1e3a8a;"><strong>Total de Serviços: ${totalQtde} | Total Geral: ${totalValor}</strong></p>
             </div>
-            <table style="width: 100%; border-collapse: collapse; font-size: 12px;" class="no-break">
+            <table style="width: 100%; border-collapse: collapse;" class="no-break">
                 <thead>
                     <tr style="background-color: #3b82f6; color: white;">
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Instituição</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Qtde Serviços</th>
-                        <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Total</th>
+                        <th style="padding: 6px; border: 1px solid #ddd; text-align: center;">Instituição</th>
+                        <th style="padding: 6px; border: 1px solid #ddd; text-align: center;">Qtde Serviços</th>
+                        <th style="padding: 6px; border: 1px solid #ddd; text-align: center;">Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${Array.from(tbody.children).map(row => `
                         <tr>
                             ${Array.from(row.children).map(cell => `
-                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${cell.textContent}</td>
+                                <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">${cell.textContent}</td>
                             `).join('')}
                         </tr>
                     `).join('')}
                     <tr style="background-color: #dbeafe; font-weight: bold;">
-                        <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">TOTAL GERAL →</td>
-                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${totalQtde}</td>
-                        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${totalValor}</td>
+                        <td style="padding: 6px; border: 1px solid #ddd; text-align: right;">TOTAL GERAL →</td>
+                        <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">${totalQtde}</td>
+                        <td style="padding: 6px; border: 1px solid #ddd; text-align: center;">${totalValor}</td>
                     </tr>
                 </tbody>
             </table>
-            <div style="margin-top: 30px; text-align: center; font-size: 11px; color: #666;">
-                <p>KTSistema - Gestão de Ordens de Serviço</p>
-                <p>Desenvolvido por Sidnei Carraco</p>
-            </div>
         </div>
     `;
 
     const opt = {
-        margin: [0.5, 0.4, 0.6, 0.4],
+        margin: [0.4, 0.4, 0.6, 0.4], // [top=0.25 (~0.6cm), left, bottom, right] - margem superior reduzida
         filename: `${nomeArquivo}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
@@ -236,19 +233,31 @@ function exportarPDF() {
         }
     };
 
+    // Gerar PDF e adicionar rodapé personalizado
     html2pdf().set(opt).from(elemento).toPdf().get('pdf').then(pdf => {
         const totalPages = pdf.internal.getNumberOfPages();
+
+        // Adicionar rodapé em TODAS as páginas
         for (let i = 1; i <= totalPages; i++) {
             pdf.setPage(i);
-            pdf.setFontSize(10);
-            pdf.setTextColor(150);
-            const pageText = `Página ${i} de ${totalPages}`;
+            pdf.setFontSize(8);
+            pdf.setTextColor(120); // Cinza
+
             const pageWidth = pdf.internal.pageSize.getWidth();
             const pageHeight = pdf.internal.pageSize.getHeight();
-            pdf.text(pageText, pageWidth - 1.2, pageHeight - 0.3, { align: 'right' });
+            const footerY = pageHeight - 0.4; // Posição vertical do rodapé
+
+            // Texto à ESQUERDA: KT-Sistema
+            const textoRodape = 'KT-Sistema Gestão de Ordens de Serviço - Desenvolvido por Sidnei Carraco';
+            pdf.text(textoRodape, 0.35, footerY);
+
+            // Numeração à DIREITA
+            const numPagina = `Página ${i} de ${totalPages}`;
+            pdf.text(numPagina, pageWidth - 0.35, footerY, { align: 'right' });
         }
     }).save().then(() => {
         elemento.remove();
+        console.log('✅ PDF exportado com sucesso');
     }).catch(err => {
         console.error('Erro ao gerar PDF:', err);
         alert('Erro ao gerar PDF. Tente novamente.');

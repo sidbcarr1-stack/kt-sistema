@@ -29,4 +29,11 @@
             class="ml-auto bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded font-semibold transition-colors">🗑️
             Limpar</button>
     </div>
+
+
+    <!-- Certifique-se de que existe este input hidden no seu form de edição -->
+    <input type="hidden" id="linha_atual" value="{{ os.linha if os else '' }}">
+
+    <script src="{{ url_for('static', filename='js/comentarios_celula.js') }}"></script>
+
 </div>

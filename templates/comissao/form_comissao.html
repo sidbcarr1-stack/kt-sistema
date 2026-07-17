@@ -100,19 +100,16 @@
 </div>
 {% endblock %}
 
-103 {% block extra_js %}
-104
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/comissao.js') }}"></script>
 <script>
-    105      document.addEventListener('DOMContentLoaded', function () {
-        106          if (typeof initComissao === 'function') {
-            107              initComissao();
-            108
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof initComissao === 'function') {
+            initComissao();
         }
-        109          if (typeof definirOrigem === 'function') {
-            110              definirOrigem('relatorios');
-            111
+        if (typeof definirOrigem === 'function') {
+            definirOrigem('relatorios');
         }
-        112
     });
-    113  </script>
-114 {% endblock %}
+</script>
+{% endblock %}
