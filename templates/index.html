@@ -43,6 +43,14 @@
             <p class="text-gray-600 text-center text-sm">Consultas e análises</p>
         </div>
 
+        <!-- Pedágios -->
+        <div onclick="abrirPedagios()"
+            class="menu-card bg-white rounded-xl p-6 cursor-pointer border-2 border-transparent hover:border-blue-400 shadow-md hover:shadow-lg transition-all">
+            <div class="text-4xl text-center mb-2">🛣️</div>
+            <h2 class="text-xl font-bold text-gray-800 text-center mb-1">Pedágios</h2>
+            <p class="text-gray-600 text-center text-sm">Pedágios Pendentes</p>
+        </div>
+
         <!-- Comissão -->
         <div onclick="abrirComissao()"
             class="menu-card bg-white rounded-xl p-6 cursor-pointer border-2 border-transparent hover:border-teal-500 shadow-md hover:shadow-lg transition-all">
@@ -111,6 +119,12 @@
 
     function abrirComissao() {
         window.location.href = '/comissao';
+    }
+
+    function abrirPedagios() {
+        document.getElementById('menu-principal').classList.add('hidden');
+        document.getElementById('tela-formulario').classList.remove('hidden');
+        carregarFormulario('pedagios');
     }
 
     function voltarAoMenu() {
@@ -183,6 +197,16 @@
                                 console.log('✅ Script relatorio.js carregado');
                                 if (typeof initRelatorio === 'function') {
                                     setTimeout(() => initRelatorio(), 100);
+                                }
+                            };
+                            document.head.appendChild(script);
+                        } else if (tipo === 'pedagios') {
+                            const script = document.createElement('script');
+                            script.src = '/static/js/pedagios.js';
+                            script.onload = function () {
+                                console.log('✅ Script pedagios.js carregado');
+                                if (typeof initPedagios === 'function') {
+                                    setTimeout(() => initPedagios(), 100);
                                 }
                             };
                             document.head.appendChild(script);

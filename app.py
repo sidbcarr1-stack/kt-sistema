@@ -300,6 +300,8 @@ def formulario(tipo):
         return render_template('edicao/form_edicao.html')
     elif tipo == 'relatorio':
         return render_template('relatorio/form_relatorio.html')
+    elif tipo == 'pedagios':
+        return render_template('relatorio/form_pedagios.html')
     else:
         return "Formulário não encontrado", 404
 
@@ -953,6 +955,31 @@ def comissao():
     return render_template('comissao/form_comissao.html')
 
 
+@app.route('/api/pedagios-pendentes')
+@login_required
+def api_pedagios_pendentes():
+    """Retorna registros filtrados para o relatório de pedágios."""
+    try:
+        data_inicio = request.args.get('data_inicio', '')
+        data_fim = request.args.get('data_fim', '')
+        instituicao = request.args.get('instituicao', '')
+        protocolo = request.args.get('protocolo', '')
+        motorista = request.args.get('motorista', '')
+        placa = request.args.get('placa', '')
+        
+        resultado = sheets_backend.listar_pedagios_pendentes(
+            data_inicio=data_inicio,
+            data_fim=data_fim,
+            instituicao=instituicao,
+            protocolo=protocolo,
+            motorista=motorista,
+            placa=placa
+        )
+        return jsonify({"success": True, **resultado})
+    except Exception as e:
+        print(f"Erro ao listar pedágios: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/api/comissao')
 @login_required
 def api_comissao():
@@ -968,19 +995,30 @@ def api_comissao():
                 "error": "Motorista, data inicial e data final são obrigatórios"
             }), 400
         
-        # ✅ CORREÇÃO: Range expandido para incluir coluna AV (e além se necessário)
+        # Range expandido para incluir todas as colunas necessárias
         aba = sheets_backend._obter_aba_por_nome('BD_Geral')
-        dados = aba.get('B5:BS20000')  # De B até BS (inclui AV e todas as colunas até BS)
+        dados = aba.get('B5:BJ20000')  # B até BJ (conforme fórmula da planilha)
         
-        # Converter datas para comparação
+        # ✅ CORREÇÃO: Função que aceita ambos os formatos de data
         def parse_data_br(data_str):
             if not data_str:
                 return None
             try:
-                partes = data_str.split('/')
-                if len(partes) == 3:
-                    return datetime(int(partes[2]), int(partes[1]), int(partes[0]))
-            except:
+                data_str = str(data_str).strip()
+                
+                # Formato ISO (YYYY-MM-DD) - padrão do input HTML
+                if '-' in data_str:
+                    partes = data_str.split('-')
+                    if len(partes) == 3:
+                        return datetime(int(partes[0]), int(partes[1]), int(partes[2]))
+                
+                # Formato BR (DD/MM/YYYY)
+                if '/' in data_str:
+                    partes = data_str.split('/')
+                    if len(partes) == 3:
+                        return datetime(int(partes[2]), int(partes[1]), int(partes[0]))
+            except Exception as e:
+                print(f"⚠️ Erro ao parsear data '{data_str}': {e}")
                 pass
             return None
         
@@ -990,14 +1028,25 @@ def api_comissao():
         if not data_ini or not data_fim:
             return jsonify({
                 "success": False,
-                "error": "Formato de data inválido. Use DD/MM/YYYY"
+                "error": f"Formato de data inválido. Recebido: {data_inicio} a {data_final}"
             }), 400
+        
+        print(f"🔍 Filtrando comissão:")
+        print(f"   Motorista: {motorista}")
+        print(f"   Período: {data_ini.strftime('%d/%m/%Y')} a {data_fim.strftime('%d/%m/%Y')}")
+        print(f"   Total de linhas lidas: {len(dados)}")
         
         # Filtrar dados
         registros_filtrados = []
-        for linha in dados:
-            if not linha or len(linha) < 45:
+        total_linhas_processadas = 0
+        total_linhas_filtradas_motorista = 0
+        total_linhas_filtradas_data = 0
+        
+        for idx, linha in enumerate(dados):
+            if not linha or len(linha) < 15:  # Mínimo de colunas necessárias
                 continue
+            
+            total_linhas_processadas += 1
             
             # Colunas (índice 0-based a partir de B):
             # B=0 (Empresa), K=9 (Data), J=8 (Protocolo), P=14 (Placa)
@@ -1006,8 +1055,9 @@ def api_comissao():
             motorista_linha = str(linha[12]).strip() if len(linha) > 12 else ''
             data_linha_str = str(linha[9]).strip() if len(linha) > 9 else ''
             
-            # Verificar motorista
+            # Verificar motorista (case-insensitive)
             if motorista_linha.upper() != motorista.upper():
+                total_linhas_filtradas_motorista += 1
                 continue
             
             # Verificar data
@@ -1016,6 +1066,7 @@ def api_comissao():
                 continue
             
             if data_linha < data_ini or data_linha > data_fim:
+                total_linhas_filtradas_data += 1
                 continue
             
             # Extrair valores
@@ -1023,7 +1074,7 @@ def api_comissao():
             protocolo = str(linha[8]).strip() if len(linha) > 8 else ''
             placa = str(linha[14]).strip() if len(linha) > 14 else ''
             
-            # ✅ CORREÇÃO: Buscar observação da coluna AV (índice 46)
+            # Buscar observação da coluna AV (índice 46)
             observacao = str(linha[46]).strip() if len(linha) > 46 else ''
             
             # Valores monetários
@@ -1049,11 +1100,17 @@ def api_comissao():
                 'data': data_linha_str,
                 'protocolo': protocolo,
                 'placa': placa,
-                'observacao': observacao,  # ✅ Agora vem da coluna AV
+                'observacao': observacao,
                 'pedagio': pedagio,
                 'valor_total': valor_total,
                 'valor_sem_pedagio': valor_sem_pedagio
             })
+        
+        print(f"✅ Resultados:")
+        print(f"   Total linhas processadas: {total_linhas_processadas}")
+        print(f"   Filtradas por motorista: {total_linhas_filtradas_motorista}")
+        print(f"   Filtradas por data: {total_linhas_filtradas_data}")
+        print(f"   Registros retornados: {len(registros_filtrados)}")
         
         return jsonify({
             "success": True,
@@ -1062,6 +1119,9 @@ def api_comissao():
         })
         
     except Exception as e:
+        print(f" Erro em api_comissao: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
 

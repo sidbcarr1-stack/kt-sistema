@@ -263,3 +263,92 @@ class SheetsService:
         except gspread.WorksheetNotFound:
             raise Exception(f"'Aba '{nome_aba}' não encontrada na planilha")
 
+    def listar_pedagios_pendentes(self, data_inicio='', data_fim='', instituicao='', protocolo='', motorista='', placa=''):
+        """Filtra os pedágios pendentes (Coluna I = 'SIM') com base nos critérios."""
+        try:
+            aba = self._obter_aba()
+            # Busca até a coluna BS (índice 70) para garantir que a coluna BF (índice 57 - Observação) seja incluída
+            dados = aba.get(f'A{self.linha_cabecalho}:BS20000')
+            
+            if not dados or len(dados) < 2:
+                return {"total": 0, "dados": []}
+            
+            linhas_raw = dados[1:] # Pula o cabeçalho
+            linhas_filtradas = []
+            
+            # Converter datas de filtro para objetos date (formato YYYY-MM-DD do input HTML)
+            data_ini_obj = None
+            data_fim_obj = None
+            if data_inicio:
+                try:
+                    data_ini_obj = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+                except:
+                    pass
+            if data_fim:
+                try:
+                    data_fim_obj = datetime.strptime(data_fim, '%Y-%m-%d').date()
+                except:
+                    pass
+
+            for linha in linhas_raw:
+                if not linha or len(linha) < 15: # Mínimo para ter as colunas básicas
+                    continue
+                
+                # 1. Filtro Fixo: Pedágio (Coluna I, índice 8) deve ser 'SIM'
+                col_i = str(linha[8]).strip().upper() if len(linha) > 8 else ''
+                if col_i != 'SIM':
+                    continue
+                
+                # 2. Filtro de Data (Coluna K, índice 10)
+                if data_ini_obj or data_fim_obj:
+                    data_str = str(linha[10]).strip() if len(linha) > 10 else ''
+                    try:
+                        # Tenta converter DD/MM/YYYY (formato da planilha)
+                        if '/' in data_str:
+                            partes = data_str.split('/')
+                            data_linha = datetime(int(partes[2]), int(partes[1]), int(partes[0])).date()
+                        else:
+                            data_linha = datetime.strptime(data_str, '%Y-%m-%d').date()
+                        
+                        if data_ini_obj and data_linha < data_ini_obj:
+                            continue
+                        if data_fim_obj and data_linha > data_fim_obj:
+                            continue
+                    except:
+                        # Se não conseguir parsear a data e houver filtro ativo, ignora a linha
+                        if data_ini_obj or data_fim_obj:
+                            continue
+
+                # 3. Filtro de Instituição (Coluna B, índice 1) - Exato
+                if instituicao:
+                    col_b = str(linha[1]).strip().lower() if len(linha) > 1 else ''
+                    if col_b != instituicao.lower():
+                        continue
+
+                # 4. Filtro de Protocolo (Coluna J, índice 9) - Contém
+                if protocolo:
+                    col_j = str(linha[9]).strip().lower() if len(linha) > 9 else ''
+                    if protocolo.lower() not in col_j:
+                        continue
+
+                # 5. Filtro de Motorista (Coluna N, índice 13) - Exato
+                if motorista:
+                    col_n = str(linha[13]).strip().lower() if len(linha) > 13 else ''
+                    if col_n != motorista.lower():
+                        continue
+
+                # 6. Filtro de Placa (Coluna P, índice 15) - Contém
+                if placa:
+                    col_p = str(linha[15]).strip().lower() if len(linha) > 15 else ''
+                    if placa.lower() not in col_p:
+                        continue
+
+                # Se passou por todos os filtros, adiciona a linha completa (para o JS usar os índices corretos)
+                linhas_filtradas.append(linha)
+            
+            return {
+                "total": len(linhas_filtradas),
+                "dados": linhas_filtradas
+            }
+        except Exception as e:
+            raise Exception(f"Erro ao filtrar pedágios pendentes: {str(e)}")
